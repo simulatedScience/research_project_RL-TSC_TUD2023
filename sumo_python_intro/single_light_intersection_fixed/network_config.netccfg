@@ -1,0 +1,11 @@
+<netconvert>
+    <input>
+        <node-files value="./single_intersection.nod.xml"/>
+        <edge-files value="./single_intersection_edges.edg.xml"/>
+        <tllogic-files value="./signal_logic.tll.xml"/>
+        <connection-files value="lane_limitations.con.xml"/>
+    </input>
+    <output>
+        <output-file value="./network.net.xml"/>
+    </output>
+</netconvert>

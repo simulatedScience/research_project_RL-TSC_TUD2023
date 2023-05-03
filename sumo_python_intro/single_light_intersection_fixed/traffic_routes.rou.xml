@@ -1,0 +1,17 @@
+<routes>
+    <!-- north-south routes -->
+    <flow id="north_south" from="north_center" to="center_south" begin="0" end="3600" probability="0.1"/>
+    <flow id="south_north" from="south_center" to="center_north" begin="0" end="3600" probability="0.1"/>
+    <!-- east-west routes -->
+    <flow id="east_west" from="east_center" to="center_west" begin="0" end="3600" probability="0.05"/>
+    <flow id="west_east" from="west_center" to="center_east" begin="0" end="3600" probability="0.05"/>
+    <!-- turning routes -->
+    <flow id="north_east" from="north_center" to="center_east" begin="0" end="3600" probability="0.005"/>
+    <flow id="north_west" from="north_center" to="center_west" begin="0" end="3600" probability="0.02"/>
+    <flow id="south_east" from="south_center" to="center_east" begin="0" end="3600" probability="0.02"/>
+    <flow id="south_west" from="south_center" to="center_west" begin="0" end="3600" probability="0.005"/>
+    <flow id="east_north" from="east_center" to="center_north" begin="0" end="3600" probability="0.01"/>
+    <flow id="east_south" from="east_center" to="center_south" begin="0" end="3600" probability="0.002"/>
+    <flow id="west_north" from="west_center" to="center_north" begin="0" end="3600" probability="0.002"/>
+    <flow id="west_south" from="west_center" to="center_south" begin="0" end="3600" probability="0.01"/>
+</routes>

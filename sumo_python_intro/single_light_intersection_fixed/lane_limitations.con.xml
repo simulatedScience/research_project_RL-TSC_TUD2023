@@ -1,0 +1,25 @@
+<connections>
+    <!-- Connections from north_center -->
+    <connection from="north_center" to="center_east" fromLane="1" toLane="1"/>
+    <connection from="north_center" to="center_south" fromLane="1" toLane="1"/>
+    <connection from="north_center" to="center_south" fromLane="0" toLane="0"/>
+    <connection from="north_center" to="center_west" fromLane="0" toLane="0"/>
+
+    <!-- Connections from east_center -->
+    <connection from="east_center" to="center_south" fromLane="1" toLane="1"/>
+    <connection from="east_center" to="center_west" fromLane="1" toLane="1"/>
+    <connection from="east_center" to="center_west" fromLane="0" toLane="0"/>
+    <connection from="east_center" to="center_north" fromLane="0" toLane="0"/>
+
+    <!-- Connections from south_center -->
+    <connection from="south_center" to="center_west" fromLane="1" toLane="1"/>
+    <connection from="south_center" to="center_north" fromLane="1" toLane="1"/>
+    <connection from="south_center" to="center_north" fromLane="0" toLane="0"/>
+    <connection from="south_center" to="center_east" fromLane="0" toLane="0"/>
+
+    <!-- Connections from west_center -->
+    <connection from="west_center" to="center_north" fromLane="1" toLane="1"/>
+    <connection from="west_center" to="center_east" fromLane="1" toLane="1"/>
+    <connection from="west_center" to="center_east" fromLane="0" toLane="0"/>
+    <connection from="west_center" to="center_south" fromLane="0" toLane="0"/>
+</connections>

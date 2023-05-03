@@ -13,10 +13,10 @@ Traffic congestion can cause real problems like:
 [paper](https://www.kdd.org/kdd2018/accepted-papers/view/intellilight-a-reinforcement-learning-approach-for-intelligent-traffic-ligh)
 
 - proposes two major contributions:
-  - memory palace: seperate memory into different categories to reduce biases in generated data.
+  - **memory palace**: seperate memory into different categories to reduce biases in generated data.
     - group by pairs (phase, action)
     - sample uniformly from categories to learn equally for all situations
-  - phase gate: depending on the current phase, a different set of dense layers is used in the NN.
+  - **phase gate**: depending on the current phase, a different set of dense layers is used in the NN.
     - this makes it easier for the network to change it's behaviour based on the current phase
   - (explicit interpretation of the policy, not just rewards)
 
@@ -42,4 +42,15 @@ Traffic congestion can cause real problems like:
     travel time for each vehicle is the time it spent on approaching lanes
 - Training policy: $\varepsilon$-greedy
 
-###
+### Toward A Thouseand Lights: Decentralized Deep RL for Large-Scale TRaffic Signal Control
+[paper](https://chacha-chen.github.io/papers/chacha-AAAI2020.pdf)
+> Traditional transportation approaches for traffic signal control can be categorized into following categories:
+> - pre-timed control (Koonce and Rodegerdts 2008),
+> - actuated control (Cools, Gershenson, and D’Hooghe 2013),
+> - adaptive control (Lowrie 1990; Hunt et al. 1981) and
+> - optimization based control (Varaiya 2013)
+
+Aims to adress three key issues:
+- **Scalability** for several thousand traffic lights
+- **Coordination** between traffic signals at different intersections
+- **Data feasibility**: Method should only use real-time data that is reasonably easy to obtain

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<!-- Author: GPT-4 (02.05.2023), guided by Sebastian Jost -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .box {
+            width: 230px;
+            height: 100px;
+            border: 2px solid black;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        h3 {
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+        ul {
+            margin-top: 5px;
+            padding-left: 20px;
+        }
+        .sumo {
+            background-color: #b3e5fc;
+        }
+        .custom-code {
+            background-color: #f1c40f;
+        }
+        .rl-library {
+            background-color: #a2d9ce;
+        }
+        .arrow {
+            margin-bottom: 15px;
+        }
+
+    </style>
+    <title>Workflow Diagram</title>
+</head>
+<body>
+    <div class="box sumo">
+        <h3>1. SUMO</h3>
+        <ul>
+            <li>Traffic simulation</li>
+            <li>Custom network & demand</li>
+        </ul>
+    </div>
+    <svg class="arrow" width="30" height="30" viewBox="0 0 30 30">
+        <path d="M15,0 L15,25 M15,25 L5,15 M15,25 L25,15" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="box custom-code">
+        <h3>2. Custom RL Environment</h3>
+        <ul>
+            <li>Interfaces with SUMO</li>
+            <li>Custom code required</li>
+        </ul>
+    </div>
+    <svg class="arrow" width="30" height="30" viewBox="0 0 30 30">
+        <path d="M15,0 L15,25 M15,25 L5,15 M15,25 L25,15" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="box rl-library">
+        <h3>3. RL Library</h3>
+        <ul>
+            <li>Pre-built RL algorithms</li>
+            <li>Utility functions</li>
+        </ul>
+    </div>
+    <svg class="arrow" width="30" height="30" viewBox="0 0 30 30">
+        <path d="M15,0 L15,25 M15,25 L5,15 M15,25 L25,15" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="box custom-code">
+        <h3>4. Custom Neural Network (optional)</h3>
+        <ul>
+            <li>Custom architecture</li>
+            <li>TensorFlow or PyTorch</li>
+        </ul>
+    </div>
+    <svg class="arrow" width="30" height="30" viewBox="0 0 30 30">
+        <path d="M15,0 L15,25 M15,25 L5,15 M15,25 L25,15" stroke="black" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="box custom-code">
+        <h3>5. Training Script</h3>
+        <ul>
+            <li>Set up RL agent & environment</li>
+            <li>Train & evaluate agent</li>
+        </ul>
+    </div>
+</body>
+</html>

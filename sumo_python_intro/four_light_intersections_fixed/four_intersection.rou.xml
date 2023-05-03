@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2023-05-03 21:55:21 by Eclipse SUMO netedit Version 1.17.0
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- Vehicles, persons and containers (sorted by depart) -->
+    <flow id="NNW_to_SSE" begin="0.00" fromJunction="NNW" toJunction="SSE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_0" begin="0.00" fromJunction="WNW" toJunction="ESE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_1" begin="0.00" fromJunction="WSW" toJunction="ENE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_10" begin="0.00" fromJunction="NNE" toJunction="ESE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_11" begin="0.00" fromJunction="NNW" toJunction="NNE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_12" begin="0.00" fromJunction="NNE" toJunction="NNW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_13" begin="0.00" fromJunction="WNW" toJunction="WSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_14" begin="0.00" fromJunction="ESE" toJunction="ENE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_15" begin="0.00" fromJunction="ENE" toJunction="ESE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_16" begin="0.00" fromJunction="SSE" toJunction="NNW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_17" begin="0.00" fromJunction="NNE" toJunction="SSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_18" begin="0.00" fromJunction="SSW" toJunction="NNE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_19" begin="0.00" fromJunction="ENE" toJunction="WSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_2" begin="0.00" fromJunction="SSW" toJunction="NNE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_20" begin="0.00" fromJunction="ENE" toJunction="SSE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_21" begin="0.00" fromJunction="SSW" toJunction="NNW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_22" begin="0.00" fromJunction="NNE" toJunction="SSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_23" begin="0.00" fromJunction="WSW" toJunction="ESE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_24" begin="0.00" fromJunction="NNW" toJunction="ENE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_25" begin="0.00" fromJunction="SSE" toJunction="SSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_26" begin="0.00" fromJunction="SSE" toJunction="WSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_3" begin="0.00" fromJunction="NNW" toJunction="WSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_4" begin="0.00" fromJunction="NNW" toJunction="SSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_5" begin="0.00" fromJunction="WNW" toJunction="ENE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_6" begin="0.00" fromJunction="WNW" toJunction="WSW" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_7" begin="0.00" fromJunction="SSW" toJunction="ESE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_8" begin="0.00" fromJunction="SSE" toJunction="ENE" end="3600.00" vehsPerHour="200.00"/>
+    <flow id="f_9" begin="0.00" fromJunction="NNE" toJunction="WNW" end="3600.00" vehsPerHour="200.00"/>
+</routes>
