@@ -14,13 +14,13 @@ class IntersectionPhaseGenerator():
     :param time_interval: use to calculate
     '''
 
-    def __init__(self, world, I, fns=("phase"),
+    def __init__(self, world, intersection, fns=("phase"),
                  targets=("cur_phase"), negative=False):
         self.world = world
-        self.I = I
+        self.intersection = intersection
 
         # get cur phase of the intersection
-        self.phase = I.current_phase
+        self.phase = intersection.current_phase
 
         # subscribe functions
         self.world.subscribe(fns)
@@ -38,7 +38,7 @@ class IntersectionPhaseGenerator():
         :param: None
         :return ret: result based on current phase
         '''
-        ret = [self.I.current_phase]
+        ret = [self.intersection.current_phase]
 
         if self.negative:
             ret = ret * (-1)

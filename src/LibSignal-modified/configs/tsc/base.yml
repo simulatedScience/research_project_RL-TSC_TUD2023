@@ -17,16 +17,20 @@ world:
 
   rlTrafficLight: True
 
+  failure_chance: 0.15
+  noise_chance: 1.0
+  noise_range: 0.15
+
 trainer:
   thread: 4
-  ngpu: -1
+  ngpu: 1
   learning_start: 5000
   buffer_size: 5000
   steps: 3600
   test_steps: 3600
   yellow_length: 5
-  action_interval: 10
-  episodes: 200
+  action_interval: 10 # how many simulation timesteps between actions
+  episodes: 100 # number of episodes to train for
   update_model_rate: 1
   update_target_rate: 10
   test_when_train: True
@@ -58,8 +62,3 @@ logger:
   save_model: True
   save_rate: 5
   attention: False
-
-
-
-
-

@@ -4,7 +4,7 @@ import numpy as np
 import os
 import random
 from collections import OrderedDict, deque
-import gym
+import gymnasium as gym
 
 from generator.lane_vehicle import LaneVehicleGenerator
 from generator.intersection_phase import IntersectionPhaseGenerator
@@ -23,8 +23,8 @@ from torch_geometric.utils import add_self_loops
 @Registry.register_model('colight')
 class CoLightAgent(RLAgent):
     #  TODO: test multiprocessing effect on agents or need deep copy here
-    def __init__(self, world, rank):
-        super().__init__(world, world.intersection_ids[rank])
+    def __init__(self, world, rank, random_seed=None):
+        super().__init__(world, world.intersection_ids[rank], random_seed)
         """
         multi-agents in one model-> modify self.action_space, self.reward_generator, self.ob_generator here
         """

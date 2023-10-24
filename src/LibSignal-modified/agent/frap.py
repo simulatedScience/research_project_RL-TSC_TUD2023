@@ -18,8 +18,8 @@ class FRAP_DQNAgent(RLAgent):
     '''
     FRAP_DQNAgent consists of FRAP and methods for training agents, communicating with environment, etc.
     '''
-    def __init__(self, world, rank):
-        super().__init__(world,world.intersection_ids[rank])
+    def __init__(self, world, rank, random_seed=None):
+        super().__init__(world,world.intersection_ids[rank], random_seed)
         self.dic_agent_conf = Registry.mapping['model_mapping']['setting']
         self.dic_traffic_env_conf = Registry.mapping['world_mapping']['setting']
         
@@ -55,9 +55,9 @@ class FRAP_DQNAgent(RLAgent):
         self.queue = LaneVehicleGenerator(self.world, self.inter_obj,
                                                      ["lane_waiting_count"], in_only=True,
                                                      negative=False)
-        self.delay = LaneVehicleGenerator(self.world, self.inter_obj,
-                                                     ["lane_delay"], in_only=True, average="all",
-                                                     negative=False)
+        # self.delay = LaneVehicleGenerator(self.world, self.inter_obj,
+        #                                              ["lane_delay"], in_only=True, average="all",
+        #                                              negative=False)
 
         map_name = self.dic_traffic_env_conf.param['network']
 
@@ -124,9 +124,9 @@ class FRAP_DQNAgent(RLAgent):
         self.queue = LaneVehicleGenerator(self.world, self.inter_obj,
                                                      ["lane_waiting_count"], in_only=True,
                                                      negative=False)
-        self.delay = LaneVehicleGenerator(self.world, self.inter_obj,
-                                                     ["lane_delay"], in_only=True, average="all",
-                                                     negative=False)
+        # self.delay = LaneVehicleGenerator(self.world, self.inter_obj,
+        #                                              ["lane_delay"], in_only=True, average="all",
+        #                                              negative=False)
     
     def relation(self):
         '''
@@ -138,7 +138,7 @@ class FRAP_DQNAgent(RLAgent):
         '''
         comp_mask = []
         for i in range(len(self.phase_pairs)):
-            zeros = np.zeros(len(self.phase_pairs) - 1, dtype=np.int)
+            zeros = np.zeros(len(self.phase_pairs) - 1, dtype=np.int_)
             cnt = 0
             for j in range(len(self.phase_pairs)):
                 if i == j: continue
@@ -296,8 +296,8 @@ class FRAP_DQNAgent(RLAgent):
         obs_tp = np.concatenate(obs_tp) # (batch,lane_num)
         if self.phase:
             if self.one_hot:
-                phase_t = np.concatenate([utils.idx2onehot(item[1][1], self.action_space.n, self.dic_phase_expansion) for item in samples])
-                phase_tp = np.concatenate([utils.idx2onehot(item[1][5], self.action_space.n, self.dic_phase_expansion) for item in samples])
+                phase_t = np.concatenate([utils.idx2onehot(item[1][1], self.action_space.n, self.num_actions) for item in samples]) # SJ: replaced self.dic_phase_expansion with self.num_actions
+                phase_tp = np.concatenate([utils.idx2onehot(item[1][5], self.action_space.n, self.num_actions) for item in samples]) # SJ: replaced self.dic_phase_expansion with self.num_actions
             else:
                 phase_t = np.concatenate([item[1][1].reshape(1,-1) for item in samples]) # (batch, 1)
                 phase_tp = np.concatenate([item[1][5].reshape(1,-1) for item in samples])
@@ -351,9 +351,9 @@ class FRAP_DQNAgent(RLAgent):
         '''
         model_name = os.path.join(
             Registry.mapping['logger_mapping']['path'].path, 'model', f'{e}_{self.rank}.pt')
-        self.model = FRAP(self.dic_agent_conf, self.dic_phase_expansion, self.num_actions, self.phase_pairs, self.comp_mask)
+        self.model = FRAP(self.dic_agent_conf, self.num_actions, self.phase_pairs, self.comp_mask) # SJ: replaced self.dic_phase_expansion with self.num_actions
         self.model.load_state_dict(torch.load(model_name))
-        self.target_model = FRAP(self.dic_agent_conf, self.dic_phase_expansion, self.num_actions, self.phase_pairs, self.comp_mask)
+        self.target_model = FRAP(self.dic_agent_conf, self.num_actions, self.phase_pairs, self.comp_mask) # SJ: replaced self.dic_phase_expansion with self.num_actions
         self.target_model.load_state_dict(torch.load(model_name))
 
     def save_model(self, e):

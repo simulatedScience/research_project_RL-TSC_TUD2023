@@ -1,14 +1,10 @@
 includes:
   - configs/tsc/base.yml
 
-world:
-  gui: False # redundant
 
 model:
   name: presslight
   train_model: True
-  test_model: True
-  load_model: True
   d_dense: 20
   epsilon: 0.1
   epsilon_decay: 0.995

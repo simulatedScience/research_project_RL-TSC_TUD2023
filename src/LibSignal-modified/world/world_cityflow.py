@@ -1,6 +1,6 @@
 import json
 import os
-import cityflow
+# import cityflow
 from common.registry import Registry
 
 import numpy as np

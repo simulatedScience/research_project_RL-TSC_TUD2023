@@ -27,6 +27,8 @@ class BaseTrainer(ABC):
                 if not os.path.exists(os.path.join(self.dir, self.replay_file_dir)):
                     os.makedirs(os.path.join(self.dir, self.replay_file_dir))
         self.seed = Registry.mapping['command_mapping']['setting'].param['seed']
+        if self.seed is None:
+            self.seed = random.randint(0, 999999)
         self.logger = logger
         #self.debug = args['debug']
         self.name = name

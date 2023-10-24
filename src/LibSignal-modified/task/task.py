@@ -42,7 +42,7 @@ class TSCTask(BaseTask):
             if Registry.mapping['model_mapping']['setting'].param['train_model']:
                 self.trainer.train()
             if Registry.mapping['model_mapping']['setting'].param['test_model']:
-                self.trainer.test()
+                self.trainer.test(drop_load=False) # SJ: added drop_load=False
         except RuntimeError as e:
             self._process_error(e)
             raise e

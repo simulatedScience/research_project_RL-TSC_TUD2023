@@ -87,12 +87,12 @@ class TSCTrainer(BaseTrainer):
         :return: None
         '''
         self.agents = []
-        agent = Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, 0)
+        agent = Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, 0, random_seed=self.seed)
         print(agent)
         num_agent = int(len(self.world.intersections) / agent.sub_agents)
         self.agents.append(agent)  # initialized N agents for traffic light control
         for i in range(1, num_agent):
-            self.agents.append(Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, i))
+            self.agents.append(Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, i, random_seed=self.seed))
 
         # for magd agents should share information 
         if Registry.mapping['model_mapping']['setting'].param['name'] == 'magd':
@@ -185,7 +185,7 @@ class TSCTrainer(BaseTrainer):
                 mean_loss = np.mean(np.array(episode_loss))
             else:
                 mean_loss = 0
-            
+            # log training status
             self.writeLog("TRAIN", e, self.metric.real_average_travel_time(),\
                 mean_loss, self.metric.rewards(), self.metric.queue(), self.metric.delay(), self.metric.throughput())
             self.logger.info("step:{}/{}, q_loss:{}, rewards:{}, queue:{}, delay:{}, throughput:{}".format(i, self.steps,\
@@ -200,6 +200,8 @@ class TSCTrainer(BaseTrainer):
                 self.train_test(e)
         # self.dataset.flush([ag.replay_buffer for ag in self.agents])
         [ag.save_model(e=self.episodes) for ag in self.agents]
+        # SJ: added logging total number of model evaluations
+        self.logger.info(f"Training completed using {total_decision_num} model evaluations.")
 
     def train_test(self, e):
         '''
@@ -229,6 +231,7 @@ class TSCTrainer(BaseTrainer):
                 self.metric.update(rewards)
             if all(dones):
                 break
+        # log testing process
         self.logger.info("Test step:{}/{}, travel time :{}, rewards:{}, queue:{}, delay:{}, throughput:{}".format(\
             e, self.episodes, self.metric.real_average_travel_time(), self.metric.rewards(),\
             self.metric.queue(), self.metric.delay(), int(self.metric.throughput())))
@@ -252,7 +255,10 @@ class TSCTrainer(BaseTrainer):
                 self.env.eng.set_save_replay(False)
         self.metric.clear()
         if not drop_load:
-            [ag.load_model(self.episodes) for ag in self.agents]
+            try:
+                [ag.load_model(self.episodes) for ag in self.agents]
+            except AttributeError as e:
+                self.logger.error(f"No model to load.\n{e}")
         attention_mat_list = []
         obs = self.env.reset()
         for a in self.agents:

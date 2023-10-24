@@ -19,8 +19,8 @@ class PressLightAgent(RLAgent):
     '''
     PressLightAgent coordinates traffic signals by learning Max Pressure.
     '''
-    def __init__(self, world, rank):
-        super().__init__(world,world.intersection_ids[rank])
+    def __init__(self, world, rank, random_seed=None):
+        super().__init__(world, world.intersection_ids[rank], random_seed)
         self.buffer_size = Registry.mapping['trainer_mapping']['setting'].param['buffer_size']
         self.replay_buffer = deque(maxlen=self.buffer_size)
 
@@ -34,10 +34,27 @@ class PressLightAgent(RLAgent):
         # get generator
         inter_id = self.world.intersection_ids[self.rank]
         inter_obj = self.world.id2intersection[inter_id]
-        self.ob_generator = LaneVehicleGenerator(world, inter_obj, ["lane_count"], average=None)
+        self.ob_generator = LaneVehicleGenerator(
+                world,
+                inter_obj,
+                ["lane_count"],
+                average=None,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                NOISE_CHANCE=self.NOISE_CHANCE,
+                NOISE_RANGE=self.NOISE_RANGE,
+                seed=self.seed,)
         self.phase_generator = IntersectionPhaseGenerator(world, inter_obj, ["phase"],
                                                           targets=["cur_phase"], negative=False)
-        self.reward_generator = LaneVehicleGenerator(world, inter_obj, ["pressure"], average="all", negative=True)
+        self.reward_generator = LaneVehicleGenerator(
+                world,
+                inter_obj,
+                ["pressure"],
+                average="all",
+                negative=True,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                NOISE_CHANCE=self.NOISE_CHANCE,
+                NOISE_RANGE=self.NOISE_RANGE,
+                seed=self.seed,)
         self.action_space = gym.spaces.Discrete(len(inter_obj.phases))
         if self.phase:
             if self.one_hot:
@@ -78,16 +95,40 @@ class PressLightAgent(RLAgent):
         '''
         inter_id = self.world.intersection_ids[self.rank]
         inter_obj = self.world.id2intersection[inter_id]
-        self.ob_generator = LaneVehicleGenerator(self.world, inter_obj, ["lane_count"], average=None)
+        self.ob_generator = LaneVehicleGenerator(
+                self.world,
+                inter_obj,
+                ["lane_count"],
+                average=None,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                NOISE_CHANCE=self.NOISE_CHANCE,
+                NOISE_RANGE=self.NOISE_RANGE,
+                seed=self.seed,)
         self.phase_generator = IntersectionPhaseGenerator(self.world, inter_obj, ["phase"],
                                                           targets=["cur_phase"], negative=False)
-        self.reward_generator = LaneVehicleGenerator(self.world, inter_obj, ["pressure"], average="all", negative=True)
-        self.queue = LaneVehicleGenerator(self.world, inter_obj,
-                                                     ["lane_waiting_count"], in_only=True,
-                                                     negative=False)
-        self.delay = LaneVehicleGenerator(self.world, inter_obj,
-                                                     ["lane_delay"], in_only=True, average="all",
-                                                     negative=False)
+        self.reward_generator = LaneVehicleGenerator(
+                self.world,
+                inter_obj,
+                ["pressure"],
+                average="all",
+                negative=True)
+        self.queue = LaneVehicleGenerator(
+                self.world,
+                inter_obj,
+                ["lane_waiting_count"],
+                in_only=True,
+                negative=False,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                NOISE_CHANCE=self.NOISE_CHANCE,
+                NOISE_RANGE=self.NOISE_RANGE,
+                seed=self.seed,)
+        self.delay = LaneVehicleGenerator(
+                self.world,
+                inter_obj,
+                ["lane_delay"],
+                in_only=True,
+                average="all",
+                negative=False,)
 
     def get_ob(self):
         '''
@@ -273,6 +314,8 @@ class PressLightAgent(RLAgent):
         self.model.load_state_dict(torch.load(model_name))
         self.target_model = self._build_model()
         self.target_model.load_state_dict(torch.load(model_name))
+        # log name of loaded model
+        print(f"SUCCESS: Loaded model {model_name}")
     
     def save_model(self, e):
         '''

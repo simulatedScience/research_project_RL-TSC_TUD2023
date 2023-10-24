@@ -20,20 +20,25 @@ class IntersectionVehicleGenerator():
     :param negative: boolean, whether return negative values (mostly for Reward).
     :param time_interval: use to calculate
     '''
-    def __init__(self, world, I, fns=("vehicle_trajectory", "lane_vehicles", "history_vehicles", "vehicle_distance"), targets=("vehicle_map"), negative=False):
+    def __init__(self,
+                 world,
+                 intersection,
+                 fns=("vehicle_trajectory", "lane_vehicles", "history_vehicles", "vehicle_distance"),
+                 targets=("vehicle_map"),
+                 negative=False):
         self.world = world
-        self.I = I
+        self.intersection = intersection
 
         # get cur phase of the intersection
-        self.phase = I.current_phase
+        self.phase = intersection.current_phase
 
         # get lanes of intersections
         self.lanes = []
         self.in_lanes = []
         self.road_starting_points = {}
-        roads = I.roads
+        roads = intersection.roads
         for road in roads:
-            from_zero = (road["startIntersection"] == I.id) if self.world.RIGHT else (road["endIntersection"] == I.id)
+            from_zero = (road["startIntersection"] == intersection.id) if self.world.RIGHT else (road["endIntersection"] == intersection.id)
             self.road_starting_points[road["id"]] = road["points"][0]
             self.lanes.append([ road["id"] + "_" + str(i) for i in range(len(road["lanes"]))[::(1 if from_zero else -1)]])
             if from_zero:

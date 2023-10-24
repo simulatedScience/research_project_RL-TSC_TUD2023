@@ -1,6 +1,6 @@
 from . import BaseAgent
 from common.registry import Registry
-import gym
+import gymnasium as gym
 from generator import LaneVehicleGenerator, IntersectionPhaseGenerator, IntersectionVehicleGenerator
 import random
 import numpy as np
@@ -11,8 +11,8 @@ class RLAgent(BaseAgent):
     '''
     RLAgent Class is mainly used for creating a rl-based agent and base methods.
     '''
-    def __init__(self, world, intersection_ids):
-        super().__init__(world)
+    def __init__(self, world, intersection_ids, random_seed=None):
+        super().__init__(world, random_seed)
         self.id = intersection_ids
         self.inter_obj = self.world.id2intersection[self.id]
         self.action_space = gym.spaces.Discrete(len(self.inter_obj.phases))

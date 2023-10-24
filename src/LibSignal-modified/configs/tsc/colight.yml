@@ -5,6 +5,8 @@ includes:
 model:
   name: colight
   train_model: True
+  test_model: True
+  load_model: True
   graphic: True
   vehicle_max: 1
   epsilon: 0.8

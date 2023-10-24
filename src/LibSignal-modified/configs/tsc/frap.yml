@@ -4,6 +4,8 @@ includes:
 model:
   name: frap
   train_model: True
+  test_model: True
+  load_model: True
   n_layers: 2
   rotation: true
   conflict_matrix: true
@@ -19,6 +21,7 @@ model:
 
 trainer: 
   learning_start: 1000
+  buffer_size: 5000
   # action_interval: 20
 
 world:
@@ -65,5 +68,9 @@ world:
         # NT,NL,ET,EL,ST,SL,WT,WL
         'cluster_2415878664_254486231_359566_359576': {1: 0, 2: 1, 4: 2, 5: 3, 7: 4, 8: 5, 10: 6, 11: 7}
       }
+    },
+    atlanta1x5: {
+      #     phases: ['NT_ST','NL_SL','NL_NT','SL_ST','ET_WT','EL_WL','WT_WL','EL_ET']
+      phase_pairs: [[1, 7], [2, 8], [1, 2], [7, 8], [4, 10], [5, 11], [10, 11], [4, 5]],
     }
   }

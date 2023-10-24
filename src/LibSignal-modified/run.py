@@ -13,8 +13,8 @@ import argparse
 
 # parseargs
 parser = argparse.ArgumentParser(description='Run Experiment')
-parser.add_argument('--thread_num', type=int, default=4, help='number of threads')  # used in cityflow
-parser.add_argument('--ngpu', type=str, default="-1", help='gpu to be used')  # choose gpu card
+parser.add_argument('--thread_num', type=int, default=12, help='number of threads')  # used in cityflow
+parser.add_argument('--ngpu', type=str, default="1", help='gpu to be used')  # choose gpu card
 parser.add_argument('--prefix', type=str, default='test', help="the number of prefix in this running process")
 parser.add_argument('--seed', type=int, default=None, help="seed for pytorch backend")
 parser.add_argument('--debug', type=bool, default=True)
@@ -22,13 +22,16 @@ parser.add_argument('--interface', type=str, default="libsumo", choices=['libsum
 parser.add_argument('--delay_type', type=str, default="apx", choices=['apx','real'], help="method of calculating delay") # apx(approximate) or real
 
 parser.add_argument('-t', '--task', type=str, default="tsc", help="task type to run")
-parser.add_argument('-a', '--agent', type=str, default="dqn", help="agent type of agents in RL environment")
-parser.add_argument('-w', '--world', type=str, default="cityflow", choices=['cityflow','sumo'], help="simulator type")
-parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
+# parser.add_argument('-a', '--agent', type=str, default="dqn", help="agent type of agents in RL environment")
+parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # switched agent default to presslight
+parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # switched world default to sumo
+# parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
+parser.add_argument('-n', '--network', type=str, default="sumo1x1", help="network name")
 parser.add_argument('-d', '--dataset', type=str, default='onfly', help='type of dataset in training process')
 
 args = parser.parse_args()
 os.environ["CUDA_VISIBLE_DEVICES"] = args.ngpu
+print(f"GPU used: {args.ngpu}")
 
 logging_level = logging.INFO
 if args.debug:
@@ -77,6 +80,37 @@ class Runner:
 
 
 if __name__ == '__main__':
+    # use common.utils.load_config to load yml config files
+    # args = argparse.Namespace(
+    #     thread_num = 8,
+    #     ngpu = 1,
+    #     prefix = "exp_1",
+    #     seed = None,
+    #     debug = True,
+    #     interface = "libsumo",
+    #     delay_type = "apx",
+
+    #     task = "tsc",
+    #     agent = "colight",
+    #     world = "sumo",
+    #     network = "sumo1x1",
+    #     dataset = "onfly",
+    # )
+
+    args = argparse.Namespace(
+        thread_num = 8,
+        ngpu = 1,
+        prefix = "exp_2_perturbed_100",
+        seed = 5,
+        debug = True,
+        interface = "libsumo",
+        delay_type = "apx",
+
+        task = "tsc",
+        agent = "presslight", # frap, presslight, colight, fixedtime
+        world = "sumo",
+        network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
+        dataset = "onfly",
+    )
     test = Runner(args)
     test.run()
-

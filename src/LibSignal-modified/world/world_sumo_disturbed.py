@@ -17,16 +17,10 @@ from common.registry import Registry
 import json
 import re
 import copy
-import numpy as np
 
 import sumolib
 import libsumo
 import traci
-
-# PERTURBATION_CHANCE = 0.1
-# FAILURE_CHANCE = 0.3
-PERTURBATION_CHANCE = 0
-FAILURE_CHANCE = 0
 
 class Intersection(object):
     '''
@@ -354,7 +348,7 @@ class Intersection(object):
 
 
 
-@Registry.register_world('sumo')
+@Registry.register_world('sumo_disturbed')
 class World(object):
     '''
     World Class is mainly used for creating a SUMO engine and maintain information about SUMO world.
@@ -669,12 +663,6 @@ class World(object):
         for intsec in self.intersections:
             for lane in intsec.lanes:
                 result.update({lane: intsec.full_observation[lane]['lane_count']})
-                # SJ: simulate complete failure of detector => set count to 0
-                # if FAILURE_CHANCE != 0 and np.random.random() <= FAILURE_CHANCE:
-                #     result[lane] = 0
-                # elif PERTURBATION_CHANCE != 0 and np.random.random() <= PERTURBATION_CHANCE:
-                #     perturbation = get_random_int(mean=0, std=2)
-                #     result[lane] = max(0, result[lane] + perturbation)
         return result
 
     def get_pressure(self):
@@ -946,3 +934,6 @@ class World(object):
             count += 1
         avg_delay = avg_delay / count
         return avg_delay
+
+
+
