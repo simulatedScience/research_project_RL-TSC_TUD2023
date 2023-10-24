@@ -10,36 +10,37 @@ import time
 from datetime import datetime
 import argparse
 
+def parse_args():
+    # parseargs
+    parser = argparse.ArgumentParser(description='Run Experiment')
+    parser.add_argument('--thread_num', type=int, default=12, help='number of threads')  # used in cityflow
+    parser.add_argument('--ngpu', type=str, default="1", help='gpu to be used')  # choose gpu card
+    parser.add_argument('--prefix', type=str, default='test', help="the number of prefix in this running process")
+    parser.add_argument('--seed', type=int, default=None, help="seed for pytorch backend")
+    parser.add_argument('--debug', type=bool, default=True)
+    parser.add_argument('--interface', type=str, default="libsumo", choices=['libsumo','traci'], help="interface type") # libsumo(fast) or traci(slow)
+    parser.add_argument('--delay_type', type=str, default="apx", choices=['apx','real'], help="method of calculating delay") # apx(approximate) or real
 
-# parseargs
-parser = argparse.ArgumentParser(description='Run Experiment')
-parser.add_argument('--thread_num', type=int, default=12, help='number of threads')  # used in cityflow
-parser.add_argument('--ngpu', type=str, default="1", help='gpu to be used')  # choose gpu card
-parser.add_argument('--prefix', type=str, default='test', help="the number of prefix in this running process")
-parser.add_argument('--seed', type=int, default=None, help="seed for pytorch backend")
-parser.add_argument('--debug', type=bool, default=True)
-parser.add_argument('--interface', type=str, default="libsumo", choices=['libsumo','traci'], help="interface type") # libsumo(fast) or traci(slow)
-parser.add_argument('--delay_type', type=str, default="apx", choices=['apx','real'], help="method of calculating delay") # apx(approximate) or real
+    parser.add_argument('-t', '--task', type=str, default="tsc", help="task type to run")
+    # parser.add_argument('-a', '--agent', type=str, default="dqn", help="agent type of agents in RL environment")
+    parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # SJ: switched agent default to presslight
+    parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # SJ: switched world default to sumo
+    parser.add_argument('--failure_chance', type=float, default=0.0, help="failure chance of sensors")
+    parser.add_argument('--noise_chance', type=float, default=0.0, help="chance of adding noise to NN inputs")
+    parser.add_argument('--noise_range', type=float, default=0.15, help=r"noise range for NN inputs. 95% of noise will be within this range")
+    # parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
+    parser.add_argument('-n', '--network', type=str, default="sumo1x1", help="network name")
+    parser.add_argument('-d', '--dataset', type=str, default='onfly', help='type of dataset in training process')
 
-parser.add_argument('-t', '--task', type=str, default="tsc", help="task type to run")
-# parser.add_argument('-a', '--agent', type=str, default="dqn", help="agent type of agents in RL environment")
-parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # SJ: switched agent default to presslight
-parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # SJ: switched world default to sumo
-parser.add_argument('--failure_chance', type=float, default=0.0, help="failure chance of sensors")
-parser.add_argument('--noise_chance', type=float, default=0.0, help="chance of adding noise to NN inputs")
-parser.add_argument('--noise_range', type=float, default=0.15, help=r"noise range for NN inputs. 95% of noise will be within this range")
-# parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
-parser.add_argument('-n', '--network', type=str, default="sumo1x1", help="network name")
-parser.add_argument('-d', '--dataset', type=str, default='onfly', help='type of dataset in training process')
+    args = parser.parse_args()
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.ngpu
+    print(f"GPU used: {args.ngpu}")
 
-args = parser.parse_args()
-os.environ["CUDA_VISIBLE_DEVICES"] = args.ngpu
-print(f"GPU used: {args.ngpu}")
+    # logging_level = logging.INFO
+    # if args.debug:
+    #     logging_level = logging.DEBUG
 
-logging_level = logging.INFO
-if args.debug:
-    logging_level = logging.DEBUG
-
+    return args
 
 class Runner:
     def __init__(self, pArgs):
@@ -71,8 +72,29 @@ class Runner:
         interface.Trainer_param_Interface(self.config)
         interface.ModelAgent_param_Interface(self.config)
 
-    def run(self):
-        logger = setup_logging(logging_level)
+    def run(self, reset_logger: bool = True, run_id: str = ""):
+        logging_level = logging.INFO
+        if args.debug:
+            logging_level = logging.DEBUG
+            
+        fc = Registry.mapping['command_mapping']['setting'].param['failure_chance']
+        nc = Registry.mapping['command_mapping']['setting'].param['noise_chance']
+        nr = Registry.mapping['command_mapping']['setting'].param['noise_range']
+        run_identifier = f"_id={run_id}_fc={fc}_nc={nc}_nr={nr}"
+        if reset_logger:
+            logging.getLogger().handlers.clear()
+            filename_addon = run_identifier
+        else:
+            filename_addon = ""
+        logger = setup_logging(logging_level, filename_addon=filename_addon)
+        
+        logger.info(f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " +
+            f"fc={Registry.mapping['command_mapping']['setting'].param['failure_chance']}, " +
+            f"nc={Registry.mapping['command_mapping']['setting'].param['noise_chance']}, " +
+            f"nr={Registry.mapping['command_mapping']['setting'].param['noise_range']}" +
+            f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
+            )
+        
         self.trainer = Registry.mapping['trainer_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](logger)
         self.task = Registry.mapping['task_mapping']\
@@ -99,27 +121,30 @@ if __name__ == '__main__':
     #     network = "sumo1x1",
     #     dataset = "onfly",
     # )
-    for failure_chance in [0.0, 0.05, 0.1, 0.15]:
-        for noise_chance in [0.0, 1.0]:
-            for noise_range in [0.15]:
-                args = argparse.Namespace(
-                    thread_num = 8,
-                    ngpu = 1,
-                    prefix = "exp_2_perturbed_100",
-                    seed = 5,
-                    debug = True,
-                    interface = "libsumo",
-                    delay_type = "apx",
+    num_repetitions = 20
+    for noise_chance in [0.0, 1.0]:
+        for noise_range in [0.15]:
+            for failure_chance in [0.0, 0.05, 0.1, 0.15]:
+                for run_id in range(num_repetitions):
+                    args = parse_args()
+                    args = argparse.Namespace(
+                        thread_num = 8,
+                        ngpu = 1,
+                        prefix = "exp_1_no_perturbations_100", # exp_2_perturbed_100
+                        seed = run_id,
+                        debug = True,
+                        interface = "libsumo",
+                        delay_type = "apx",
 
-                    task = "tsc",
-                    agent = "presslight", # frap, presslight, colight, fixedtime
-                    world = "sumo",
-                    network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
-                    dataset = "onfly",
-                    
-                    failure_chance = failure_chance,
-                    noise_chance = noise_chance,
-                    noise_range = noise_range,
-                )
-                test = Runner(args)
-                test.run()
+                        task = "tsc",
+                        agent = "presslight", # frap, presslight, colight, fixedtime
+                        world = "sumo",
+                        network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
+                        dataset = "onfly",
+                        
+                        failure_chance = failure_chance,
+                        noise_chance = noise_chance,
+                        noise_range = noise_range,
+                    )
+                    test = Runner(args)
+                    test.run(run_id=f"rep_{run_id}", reset_logger=False)

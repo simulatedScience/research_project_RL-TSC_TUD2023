@@ -4,10 +4,121 @@ A program to read the `[datetime]_DTL.log` files generated during training of RL
 Author: Sebastian Jost & GPT-4 (19.10.2023)
 """
 
+from collections import namedtuple
 import csv
 
-# Function to read the data file into separate lists
-def read_rl_training_data_single_loop(file_path: str):
+# Define the named tuple
+NoiseSettings = namedtuple('NoiseSettings', ['failure_chance', 'noise_chance', 'noise_range'])
+
+
+def read_and_group_test_data(filepath: str) -> dict:
+    """
+    Read the test data from the provided file and group by noise settings.
+    
+    Args:
+    - filepath (str): Path to the file containing test data.
+    
+    Returns:
+    - dict: A dictionary grouping data by noise settings.
+    """
+    data_list = read_test_data(filepath)
+    
+    # Dictionary to group runs by noise settings
+    grouped_data = {}
+    
+    for run in data_list:
+        key = NoiseSettings(run['fc'], run['nc'], run['nr'])
+        
+        if key not in grouped_data:
+            grouped_data[key] = {
+                'travel_time': [],
+                'mean_rewards': [],
+                'queue': [],
+                'delay': [],
+                'throughput': []
+            }
+        
+        # Append metrics to the group
+        for metric in ['travel_time', 'mean_rewards', 'queue', 'delay', 'throughput']:
+            grouped_data[key][metric].append(run[metric])
+    
+    return grouped_data
+
+
+def read_test_data(filepath: str) -> list:
+    """
+    Read the test data from the provided file and return as a list of dictionaries.
+    
+    Args:
+    - filepath (str): Path to the file containing test data.
+    
+    Returns:
+    - list: A list of dictionaries, each containing settings and metrics for a test run.
+    """
+    with open(filepath, 'r') as file:
+        content = file.read()
+    
+    # Split the content into blocks
+    blocks = content.strip().split("Running RL Experiment")
+    
+    # Initialize a list to hold extracted data
+    data_list = []
+    
+    for block in blocks:
+        lines = block.strip().split("\n")
+        
+        # Skip blocks without the required number of lines
+        if len(lines) < 2:
+            continue
+        
+        run_info = extract_settings(lines[1])
+        run_info.update(extract_metrics(lines[2]))
+        data_list.append(run_info)
+    
+    return data_list
+
+
+def extract_settings(line: str) -> dict:
+    """
+    Extract settings (fc, nc, nr, rep) from the given line and return as a dictionary.
+    
+    Args:
+    - line (str): The line containing settings information.
+    
+    Returns:
+    - dict: A dictionary containing the extracted settings.
+    """
+    settings = {
+        'fc': float(line.split("fc=")[1].split("_")[0]),
+        'nc': float(line.split("nc=")[1].split("_")[0]),
+        'nr': float(line.split("nr=")[1]),
+        'rep': int(line.split("rep_")[1].split("_")[0])
+    }
+    return settings
+
+
+def extract_metrics(line: str) -> dict:
+    """
+    Extract metrics from the given line and return as a dictionary.
+    
+    Args:
+    - line (str): The line containing metrics information.
+    
+    Returns:
+    - dict: A dictionary containing the extracted metrics.
+    """
+    metrics_parts = line.split(", ")
+    metrics = {
+        'travel_time': float(metrics_parts[0].split("is ")[1]),
+        'mean_rewards': float(metrics_parts[1].split(": ")[1]),
+        'queue': float(metrics_parts[2].split(": ")[1]),
+        'delay': float(metrics_parts[3].split(": ")[1]),
+        'throughput': int(metrics_parts[4].split(": ")[1])
+    }
+    return metrics
+
+
+def read_rl_training_data(file_path: str):
     """
     Reads the RL TSC agent output log file and returns the data as separate lists for each column.
     This function uses a single loop to read the data and populate the dictionaries.
@@ -71,3 +182,16 @@ def read_rl_training_data_single_loop(file_path: str):
                 test_records["throughput"].append(throughput)
 
     return train_records, test_records
+
+if __name__ == "__main__":
+    # prompt user to enter a file via filedialog
+    import tkinter as tk
+    from tkinter import filedialog
+    # read test file
+    root = tk.Tk()
+    root.withdraw()
+    file_path = filedialog.askopenfilename()
+    # read rl training file
+    grouped_test_data = read_and_group_test_data(file_path)
+    # display data
+    print(grouped_test_data)
