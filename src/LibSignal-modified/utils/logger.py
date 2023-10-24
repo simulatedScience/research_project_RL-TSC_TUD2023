@@ -240,9 +240,14 @@ def setup_logging(level):
         if not os.path.exists(logger_dir):
             os.makedirs(logger_dir)
 
+        fc = Registry.mapping['command_mapping']['setting'].param['failure_chance']
+        nc = Registry.mapping['command_mapping']['setting'].param['noise_chance']
+        nr = Registry.mapping['command_mapping']['setting'].param['noise_range']
+
         handler_file = logging.FileHandler(os.path.join(
             logger_dir,
-            f"{datetime.now().strftime('%Y_%m_%d-%H_%M_%S')}_BRF.log"), mode='w'
+            f"{datetime.now().strftime('%Y_%m_%d-%H_%M_%S')}_BRF_fc{fc}_nc{nc}_nr{nr}.log"),
+            mode='w'
         )
         handler_file.setLevel(level)  # TODO: SET LEVEL
         root.addHandler(handler_file)

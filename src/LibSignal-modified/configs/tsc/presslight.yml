@@ -6,7 +6,7 @@ world:
 
 model:
   name: presslight
-  train_model: True
+  train_model: False
   test_model: True
   load_model: True
   d_dense: 20

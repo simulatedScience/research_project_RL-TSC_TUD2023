@@ -23,8 +23,11 @@ parser.add_argument('--delay_type', type=str, default="apx", choices=['apx','rea
 
 parser.add_argument('-t', '--task', type=str, default="tsc", help="task type to run")
 # parser.add_argument('-a', '--agent', type=str, default="dqn", help="agent type of agents in RL environment")
-parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # switched agent default to presslight
-parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # switched world default to sumo
+parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # SJ: switched agent default to presslight
+parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # SJ: switched world default to sumo
+parser.add_argument('--failure_chance', type=float, default=0.0, help="failure chance of sensors")
+parser.add_argument('--noise_chance', type=float, default=0.0, help="chance of adding noise to NN inputs")
+parser.add_argument('--noise_range', type=float, default=0.15, help=r"noise range for NN inputs. 95% of noise will be within this range")
 # parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
 parser.add_argument('-n', '--network', type=str, default="sumo1x1", help="network name")
 parser.add_argument('-d', '--dataset', type=str, default='onfly', help='type of dataset in training process')
@@ -96,21 +99,27 @@ if __name__ == '__main__':
     #     network = "sumo1x1",
     #     dataset = "onfly",
     # )
+    for failure_chance in [0.0, 0.05, 0.1, 0.15]:
+        for noise_chance in [0.0, 1.0]:
+            for noise_range in [0.15]:
+                args = argparse.Namespace(
+                    thread_num = 8,
+                    ngpu = 1,
+                    prefix = "exp_2_perturbed_100",
+                    seed = 5,
+                    debug = True,
+                    interface = "libsumo",
+                    delay_type = "apx",
 
-    args = argparse.Namespace(
-        thread_num = 8,
-        ngpu = 1,
-        prefix = "exp_2_perturbed_100",
-        seed = 5,
-        debug = True,
-        interface = "libsumo",
-        delay_type = "apx",
-
-        task = "tsc",
-        agent = "presslight", # frap, presslight, colight, fixedtime
-        world = "sumo",
-        network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
-        dataset = "onfly",
-    )
-    test = Runner(args)
-    test.run()
+                    task = "tsc",
+                    agent = "presslight", # frap, presslight, colight, fixedtime
+                    world = "sumo",
+                    network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
+                    dataset = "onfly",
+                    
+                    failure_chance = failure_chance,
+                    noise_chance = noise_chance,
+                    noise_range = noise_range,
+                )
+                test = Runner(args)
+                test.run()

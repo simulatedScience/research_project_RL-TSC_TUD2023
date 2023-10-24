@@ -17,9 +17,9 @@ world:
 
   rlTrafficLight: True
 
-  failure_chance: 0.15
-  noise_chance: 1.0
-  noise_range: 0.15
+  # failure_chance: 0.15
+  # noise_chance: 1.0
+  # noise_range: 0.15
 
 trainer:
   thread: 4

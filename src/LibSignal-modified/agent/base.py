@@ -11,9 +11,9 @@ class BaseAgent(object):
         self.world = world
         self.seed = random_seed
         self.sub_agents = 1
-        self.FAILURE_CHANCE = Registry.mapping['world_mapping']['setting'].param['failure_chance']
-        self.NOISE_CHANCE = Registry.mapping['world_mapping']['setting'].param['noise_chance']
-        self.NOISE_RANGE = Registry.mapping['world_mapping']['setting'].param['noise_range']
+        self.FAILURE_CHANCE = Registry.mapping['command_mapping']['setting'].param['failure_chance']
+        self.NOISE_CHANCE = Registry.mapping['command_mapping']['setting'].param['noise_chance']
+        self.NOISE_RANGE = Registry.mapping['command_mapping']['setting'].param['noise_range']
 
     def get_ob(self):
         raise NotImplementedError()
