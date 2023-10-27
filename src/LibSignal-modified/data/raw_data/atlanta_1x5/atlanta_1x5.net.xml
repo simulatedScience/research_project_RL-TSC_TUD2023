@@ -1,27 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-06-28 16:46:06 by Eclipse SUMO netconvert Version 1.13.0
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+<!-- generated on 2023-10-25 12:59:03 by Eclipse SUMO netedit Version 1.18.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
 
     <input>
-        <node-files value="/home/lxl/TSCtest/LibSignalSpare_new/LibSignal_wei/data/raw_data/atlanta_1x5/atlanta_1x5.nod.xml"/>
-        <edge-files value="/home/lxl/TSCtest/LibSignalSpare_new/LibSignal_wei/data/raw_data/atlanta_1x5/atlanta_1x5.edg.xml"/>
-        <connection-files value="/home/lxl/TSCtest/LibSignalSpare_new/LibSignal_wei/data/raw_data/atlanta_1x5/atlanta_1x5.con.xml"/>
-        <tllogic-files value="/home/lxl/TSCtest/LibSignalSpare_new/LibSignal_wei/data/raw_data/atlanta_1x5/atlanta_1x5.tll.xml"/>
+        <sumocfg-file value="C:\Users\basti\Documents\uni\TU_Dresden\Semester_4\research_project\src\LibSignal-modified\data\raw_data\atlanta_1x5\atlanta_1x5.sumocfg"/>
+        <additional-files value=""/>
+        <route-files value="C:\Users\basti\Documents\uni\TU_Dresden\Semester_4\research_project\src\LibSignal-modified\data\raw_data\atlanta_1x5\atlanta_1x5.rou.xml"/>
+        <sumo-net-file value="C:\Users\basti\Documents\uni\TU_Dresden\Semester_4\research_project\src\LibSignal-modified\data\raw_data\atlanta_1x5\atlanta_1x5_better_phases.net.xml"/>
     </input>
 
     <output>
-        <output-file value="/home/lxl/TSCtest/LibSignalSpare_new/LibSignal_wei/data/raw_data/atlanta_1x5/atlanta_1x5.net.xml"/>
+        <output-file value="C:\Users\basti\Documents\uni\TU_Dresden\Semester_4\research_project\src\LibSignal-modified\data\raw_data\atlanta_1x5\atlanta_1x5_better_phases.net.xml"/>
     </output>
 
-    <report>
-        <aggregate-warnings value="5"/>
-    </report>
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="0"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.50"/>
+        <rectangular-lane-cut value="0"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="0"/>
+    </pedestrian>
 
 </configuration>
 -->
 
-<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+<net version="1.16" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="-179.37,-809.91" convBoundary="0.00,0.00,338.73,899.76" origBoundary="179.37,809.91,518.10,1709.67" projParameter="!"/>
 
@@ -689,7 +703,7 @@
         <request index="34" response="000000000001100000000011000000000011" foes="000000000001100000000011000000000011" cont="0"/>
         <request index="35" response="000000000001100000000011000000000011" foes="000000000001100000000011000000000011" cont="0"/>
     </junction>
-    <junction id="69515841" type="priority" x="166.62" y="0.00" incLanes="354587521#0_0 354587521#0_1" intLanes=":69515841_0_0 :69515841_0_1" shape="166.62,0.00 160.23,0.33 166.62,0.00">
+    <junction id="69515841" type="priority" x="166.62" y="0.00" incLanes="354587521#0_0 354587521#0_1" intLanes=":69515841_0_0 :69515841_0_1" shape="166.62,-0.00 160.23,0.33 166.62,-0.00">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
     </junction>
@@ -745,7 +759,7 @@
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
     </junction>
-    <junction id="69614527" type="priority" x="0.00" y="212.06" incLanes="533146591_0 533146591_1" intLanes=":69614527_0_0 :69614527_0_1" shape="0.00,212.06 -0.94,218.39 0.00,212.06">
+    <junction id="69614527" type="priority" x="0.00" y="212.06" incLanes="533146591_0 533146591_1" intLanes=":69614527_0_0 :69614527_0_1" shape="-0.00,212.06 -0.94,218.39 -0.00,212.06">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
     </junction>

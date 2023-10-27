@@ -9,8 +9,8 @@ class FixedTimeAgent(BaseAgent):
     '''
     FixedTimeAgent gives a predefined time duration and phase order.
     '''
-    def __init__(self, world, rank, random_seed=None):
-        super().__init__(world, random_seed)
+    def __init__(self, world, rank):
+        super().__init__(world)
         self.world = world
         self.rank = rank
         self.model = None

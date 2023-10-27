@@ -28,18 +28,18 @@ class LaneVehicleGenerator(BaseGenerator):
     '''
     def __init__(self,
                  world,
-                 I,
+                 intersection,
                  fns,
                  in_only=False,
                  average=None,
                  negative=False,
                  FAILURE_CHANCE=0.0,
                  NOISE_CHANCE=0.0,
-                 NOISE_RANGE=0.15,
+                 NOISE_RANGE=0.0,
                  seed=None
                  ):
         self.world = world
-        self.I = I
+        self.intersection = intersection
         self.seed = seed
         
         self.FAILURE_CHANCE = FAILURE_CHANCE
@@ -49,9 +49,9 @@ class LaneVehicleGenerator(BaseGenerator):
         # get lanes of intersections
         self.lanes = []
         if in_only:
-            roads = I.in_roads
+            roads = intersection.in_roads
         else:
-            roads = I.roads
+            roads = intersection.roads
 
         # ---------------------------------------------------------------------
         # # resort roads order to NESW
@@ -114,14 +114,14 @@ class LaneVehicleGenerator(BaseGenerator):
         if isinstance(world, world_sumo.World):
             for r in roads:
                 if not self.world.RIGHT:
-                    tmp = sorted(I.road_lane_mapping[r], key=lambda ob: int(ob[-1]), reverse=True)
+                    tmp = sorted(intersection.road_lane_mapping[r], key=lambda ob: int(ob[-1]), reverse=True)
                 else:
-                    tmp = sorted(I.road_lane_mapping[r], key=lambda ob: int(ob[-1]))
+                    tmp = sorted(intersection.road_lane_mapping[r], key=lambda ob: int(ob[-1]))
                 self.lanes.append(tmp)
                 # TODO: rank lanes by lane ranking [0,1,2], assume we only have one digit for ranking
         elif isinstance(world, world_cityflow.World):
             for road in roads:
-                from_zero = (road["startIntersection"] == I.id) if self.world.RIGHT else (road["endIntersection"] == I.id)
+                from_zero = (road["startIntersection"] == intersection.id) if self.world.RIGHT else (road["endIntersection"] == intersection.id)
                 self.lanes.append([road["id"] + "_" + str(i) for i in range(len(road["lanes"]))[::(1 if from_zero else -1)]])
         # ---------------------------------------------------------------------------------------------------------------
         
@@ -152,7 +152,7 @@ class LaneVehicleGenerator(BaseGenerator):
         self.average = average
         self.negative = negative
 
-    def generate(self, pad_to: int = 4) -> np.ndarray:
+    def generate(self, pad_to: int = 4, run_nbr=0) -> np.ndarray:
         '''
         generate
         Generate state or reward based on current simulation state.
@@ -167,8 +167,8 @@ class LaneVehicleGenerator(BaseGenerator):
             result = results[i]
 
             # pressure returns result of each intersections, so return directly
-            if self.I.id in result:
-                ret = np.append(ret, result[self.I.id])
+            if self.intersection.id in result:
+                ret = np.append(ret, result[self.intersection.id])
                 continue
             fn_result = np.array([])
 
@@ -178,9 +178,13 @@ class LaneVehicleGenerator(BaseGenerator):
                     # SJ: add disturbance to the results
                     # SJ: laneid required for deterministic random
                     if self.average is None:
-                        if deterministic_random(lane_id, self.seed) < self.FAILURE_CHANCE:
+                        # if self.seed + run_nbr == 5:
+                        #     pass#("unexpected seed")
+                        if self.FAILURE_CHANCE > 0 and deterministic_random(lane_id, self.seed + run_nbr) < self.FAILURE_CHANCE:
                             result[lane_id] = 0
-                        elif np.random.random() < self.NOISE_CHANCE:
+                            # if np.random.random() < 0.001:
+                            #     print(f"Run {run_nbr}, seed{self.seed} -> disabled lane sensor: {lane_id}")
+                        elif self.NOISE_CHANCE > 0 and np.random.random() < self.NOISE_CHANCE:
                             result[lane_id] = modify_with_relative_error(result[lane_id], range_value=self.NOISE_RANGE)
                     road_result.append(result[lane_id])
                 if self.average == "road" or self.average == "all":
@@ -235,19 +239,16 @@ def modify_with_relative_error(n: int, range_value: float = 0.15) -> int:
     """
     std_dev = (range_value / 2) * n  # scale the standard deviation based on the original value
     modified_value = n + sample_discrete_gaussian(0, std_dev)  # Add noise centered around 0
-    return modified_value
+    return max(0, modified_value) # ensure positive value
 
 def deterministic_random(input_data, original_seed, shape=None):
     """
     Generate a random number based on the input data and the original seed. This function is deterministic, i.e. the same input data and original seed will always produce the same random number, changing either one will change the random number.
 
     Args:
-        input_data (_type_): _description_
-        original_seed (_type_): _description_
-        shape (_type_, optional): _description_. Defaults to None.
-
-    Returns:
-        _type_: _description_
+        input_data: The input data to be hashed and used to generate the random number.
+        original_seed: The original seed used to generate the random number.
+        
     """
     # Hash the input data to create a seed
     input_hash = hashlib.sha256(str(input_data).encode()).hexdigest()

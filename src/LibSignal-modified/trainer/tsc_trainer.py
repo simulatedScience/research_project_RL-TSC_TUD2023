@@ -4,7 +4,7 @@ from common.metrics import Metrics
 from environment import TSCEnv
 from common.registry import Registry
 from trainer.base_trainer import BaseTrainer
-
+from agent.base import BaseAgent
 
 @Registry.register_trainer("tsc")
 class TSCTrainer(BaseTrainer):
@@ -86,18 +86,19 @@ class TSCTrainer(BaseTrainer):
         :param: None
         :return: None
         '''
-        self.agents = []
-        agent = Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, 0, random_seed=self.seed)
-        print(agent)
+        self.agents: list[BaseAgent] = []
+        agent: BaseAgent = Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, 0)
         num_agent = int(len(self.world.intersections) / agent.sub_agents)
         self.agents.append(agent)  # initialized N agents for traffic light control
+        print(f"Created agent 1/{num_agent}:\n{self.agents[-1]}") # print first agent
         for i in range(1, num_agent):
-            self.agents.append(Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, i, random_seed=self.seed))
+            self.agents.append(Registry.mapping['model_mapping'][Registry.mapping['command_mapping']['setting'].param['agent']](self.world, i))
+            print(f"Created agent {i+1}/{num_agent}:\n{self.agents[-1]}")
 
         # for magd agents should share information 
         if Registry.mapping['model_mapping']['setting'].param['name'] == 'magd':
-            for ag in self.agents:
-                ag.link_agents(self.agents)
+            for agent in self.agents:
+                agent.link_agents(self.agents)
 
     def create_env(self):
         '''
@@ -120,64 +121,64 @@ class TSCTrainer(BaseTrainer):
         '''
         total_decision_num = 0
         flush = 0
-        for e in range(self.episodes):
+        for episode in range(self.episodes):
             # TODO: check this reset agent
             self.metric.clear()
-            last_obs = self.env.reset()  # agent * [sub_agent, feature]
+            last_obs = self.env.reset(run_nbr=episode)  # agent * [sub_agent, feature]
 
             for a in self.agents:
                 a.reset()
             if Registry.mapping['command_mapping']['setting'].param['world'] == 'cityflow':
-                if self.save_replay and e % self.save_rate == 0:
+                if self.save_replay and episode % self.save_rate == 0:
                     self.env.eng.set_save_replay(True)
-                    self.env.eng.set_replay_file(os.path.join(self.replay_file_dir, f"episode_{e}.txt"))
+                    self.env.eng.set_replay_file(os.path.join(self.replay_file_dir, f"episode_{episode}.txt"))
                 else:
                     self.env.eng.set_save_replay(False)
             episode_loss = []
             i = 0
             while i < self.steps:
                 if i % self.action_interval == 0:
-                    last_phase = np.stack([ag.get_phase() for ag in self.agents])  # [agent, intersections]
+                    last_phase = np.stack([agent.get_phase() for agent in self.agents])  # [agent, intersections]
 
                     if total_decision_num > self.learning_start:
                         actions = []
-                        for idx, ag in enumerate(self.agents):
-                            actions.append(ag.get_action(last_obs[idx], last_phase[idx], test=False))                            
+                        for idx, agent in enumerate(self.agents):
+                            actions.append(agent.get_action(last_obs[idx], last_phase[idx], test=False))                            
                         actions = np.stack(actions)  # [agent, intersections]
                     else:
-                        actions = np.stack([ag.sample() for ag in self.agents])
+                        actions = np.stack([agent.sample() for agent in self.agents])
 
                     actions_prob = []
-                    for idx, ag in enumerate(self.agents):
-                        actions_prob.append(ag.get_action_prob(last_obs[idx], last_phase[idx]))
+                    for idx, agent in enumerate(self.agents):
+                        actions_prob.append(agent.get_action_prob(last_obs[idx], last_phase[idx]))
 
                     rewards_list = []
                     for _ in range(self.action_interval):
-                        obs, rewards, dones, _ = self.env.step(actions.flatten())
+                        obs, rewards, dones, _ = self.env.step(actions.flatten(), run_nbr=episode)
                         i += 1
                         rewards_list.append(np.stack(rewards))
                     rewards = np.mean(rewards_list, axis=0)  # [agent, intersection]
                     self.metric.update(rewards)
 
-                    cur_phase = np.stack([ag.get_phase() for ag in self.agents])
-                    for idx, ag in enumerate(self.agents):
-                        ag.remember(last_obs[idx], last_phase[idx], actions[idx], actions_prob[idx], rewards[idx],
-                            obs[idx], cur_phase[idx], dones[idx], f'{e}_{i//self.action_interval}_{ag.id}')
+                    cur_phase = np.stack([agent.get_phase() for agent in self.agents])
+                    for idx, agent in enumerate(self.agents):
+                        agent.remember(last_obs[idx], last_phase[idx], actions[idx], actions_prob[idx], rewards[idx],
+                            obs[idx], cur_phase[idx], dones[idx], f'{episode}_{i//self.action_interval}_{agent.id}')
                     flush += 1
                     if flush == self.buffer_size - 1:
                         flush = 0
-                        # self.dataset.flush([ag.replay_buffer for ag in self.agents])
+                        # self.dataset.flush([agent.replay_buffer for agent in self.agents])
                     total_decision_num += 1
                     last_obs = obs
                 if total_decision_num > self.learning_start and\
                         total_decision_num % self.update_model_rate == self.update_model_rate - 1:
 
-                    cur_loss_q = np.stack([ag.train() for ag in self.agents])  # TODO: training
+                    cur_loss_q = np.stack([agent.train() for agent in self.agents])  # TODO: training
 
                     episode_loss.append(cur_loss_q)
                 if total_decision_num > self.learning_start and \
                         total_decision_num % self.update_target_rate == self.update_target_rate - 1:
-                    [ag.update_target_network() for ag in self.agents]
+                    [agent.update_target_network() for agent in self.agents]
 
                 if all(dones):
                     break
@@ -186,24 +187,24 @@ class TSCTrainer(BaseTrainer):
             else:
                 mean_loss = 0
             # log training status
-            self.writeLog("TRAIN", e, self.metric.real_average_travel_time(),\
+            self.writeLog("TRAIN", episode, self.metric.real_average_travel_time(),\
                 mean_loss, self.metric.rewards(), self.metric.queue(), self.metric.delay(), self.metric.throughput())
             self.logger.info("step:{}/{}, q_loss:{}, rewards:{}, queue:{}, delay:{}, throughput:{}".format(i, self.steps,\
                 mean_loss, self.metric.rewards(), self.metric.queue(), self.metric.delay(), int(self.metric.throughput())))
-            if e % self.save_rate == 0:
-                [ag.save_model(e=e) for ag in self.agents]
-            self.logger.info("episode:{}/{}, real avg travel time:{}".format(e, self.episodes, self.metric.real_average_travel_time()))
+            if episode % self.save_rate == 0:
+                [agent.save_model(e=episode) for agent in self.agents]
+            self.logger.info("episode:{}/{}, real avg travel time:{}".format(episode, self.episodes, self.metric.real_average_travel_time()))
             for j in range(len(self.world.intersections)):
                 self.logger.debug("intersection:{}, mean_episode_reward:{}, mean_queue:{}".format(j, self.metric.lane_rewards()[j],\
                      self.metric.lane_queue()[j]))
             if self.test_when_train:
-                self.train_test(e)
-        # self.dataset.flush([ag.replay_buffer for ag in self.agents])
-        [ag.save_model(e=self.episodes) for ag in self.agents]
+                self.train_test(episode)
+        # self.dataset.flush([agent.replay_buffer for agent in self.agents])
+        [agent.save_model(e=self.episodes) for agent in self.agents]
         # SJ: added logging total number of model evaluations
         self.logger.info(f"Training completed using {total_decision_num} model evaluations.")
 
-    def train_test(self, e):
+    def train_test(self, episode):
         '''
         train_test
         Evaluate model performance after each episode training process.
@@ -211,20 +212,20 @@ class TSCTrainer(BaseTrainer):
         :param e: number of episode
         :return self.metric.real_average_travel_time: travel time of vehicles
         '''
-        obs = self.env.reset()
+        obs = self.env.reset(run_nbr=episode)
         self.metric.clear()
         for a in self.agents:
             a.reset()
         for i in range(self.test_steps):
             if i % self.action_interval == 0:
-                phases = np.stack([ag.get_phase() for ag in self.agents])
+                phases = np.stack([agent.get_phase() for agent in self.agents])
                 actions = []
-                for idx, ag in enumerate(self.agents):
-                    actions.append(ag.get_action(obs[idx], phases[idx], test=True))
+                for idx, agent in enumerate(self.agents):
+                    actions.append(agent.get_action(obs[idx], phases[idx], test=True))
                 actions = np.stack(actions)
                 rewards_list = []
                 for _ in range(self.action_interval):
-                    obs, rewards, dones, _ = self.env.step(actions.flatten())  # make sure action is [intersection]
+                    obs, rewards, dones, _ = self.env.step(actions.flatten(), run_nbr=episode)  # make sure action is [intersection]
                     i += 1
                     rewards_list.append(np.stack(rewards))
                 rewards = np.mean(rewards_list, axis=0)  # [agent, intersection]
@@ -232,10 +233,10 @@ class TSCTrainer(BaseTrainer):
             if all(dones):
                 break
         # log testing process
-        self.logger.info("Test step:{}/{}, travel time :{}, rewards:{}, queue:{}, delay:{}, throughput:{}".format(\
-            e, self.episodes, self.metric.real_average_travel_time(), self.metric.rewards(),\
-            self.metric.queue(), self.metric.delay(), int(self.metric.throughput())))
-        self.writeLog("TEST", e, self.metric.real_average_travel_time(),\
+        self.logger.info(f"Test step:{episode+1}/{self.episodes}, travel time :{self.metric.real_average_travel_time()}, "
+                         + f"rewards:{self.metric.rewards()}, queue:{self.metric.queue()}, delay:{self.metric.delay()}, throughput:{int(self.metric.throughput())}"
+        )
+        self.writeLog("TEST", episode, self.metric.real_average_travel_time(),\
             100, self.metric.rewards(),self.metric.queue(),self.metric.delay(), self.metric.throughput())
         return self.metric.real_average_travel_time()
 
@@ -247,6 +248,7 @@ class TSCTrainer(BaseTrainer):
         :param drop_load: decide whether to load pretrained model's parameters
         :return self.metric: including queue length, throughput, delay and travel time
         '''
+        # print(f"testing with seed {self.seed}")
         if Registry.mapping['command_mapping']['setting'].param['world'] == 'cityflow':
             if self.save_replay:
                 self.env.eng.set_save_replay(True)
@@ -256,23 +258,27 @@ class TSCTrainer(BaseTrainer):
         self.metric.clear()
         if not drop_load:
             try:
-                [ag.load_model(self.episodes) for ag in self.agents]
+                [agent.load_model(self.episodes) for agent in self.agents]
             except AttributeError as e:
                 self.logger.error(f"No model to load.\n{e}")
+        for agent in self.agents: # reload seed in agents
+            agent.reload_noise_config()
         attention_mat_list = []
-        obs = self.env.reset()
+        model_evaluations: int = 0 # count how often each agents' models are evaluated
+        obs = self.env.reset(run_nbr=0)
         for a in self.agents:
             a.reset()
         for i in range(self.test_steps):
             if i % self.action_interval == 0:
-                phases = np.stack([ag.get_phase() for ag in self.agents])
+                phases = np.stack([agent.get_phase() for agent in self.agents])
                 actions = []
-                for idx, ag in enumerate(self.agents):
-                    actions.append(ag.get_action(obs[idx], phases[idx], test=True))
+                for idx, agent in enumerate(self.agents):
+                    actions.append(agent.get_action(obs[idx], phases[idx], test=True))
+                model_evaluations += 1
                 actions = np.stack(actions)
                 rewards_list = []
                 for j in range(self.action_interval):
-                    obs, rewards, dones, _ = self.env.step(actions.flatten())
+                    obs, rewards, dones, _ = self.env.step(actions.flatten(), run_nbr=0)
                     i += 1
                     rewards_list.append(np.stack(rewards))
                 rewards = np.mean(rewards_list, axis=0)  # [agent, intersection]

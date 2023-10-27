@@ -111,7 +111,7 @@ def segregate_data_by_params(data, x_param):
         if key not in segregated_data:
             segregated_data[key] = []
         segregated_data[key].append(run)
-    
+
     return segregated_data
 
 
@@ -125,8 +125,13 @@ def main():
     # plot averaged data with ranges
     plot_averaged_data_with_range(grouped_data, 'fc', 'throughput')
     plot_averaged_data_with_range(grouped_data, 'fc', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'fc', 'queue')
     plot_averaged_data_with_range(grouped_data, 'nc', 'throughput')
     plot_averaged_data_with_range(grouped_data, 'nc', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'nc', 'queue')
+    plot_averaged_data_with_range(grouped_data, 'nr', 'throughput')
+    plot_averaged_data_with_range(grouped_data, 'nr', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'nr', 'queue')
     
 if __name__ == '__main__':
     main()

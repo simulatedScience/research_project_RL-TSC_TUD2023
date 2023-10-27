@@ -1,5 +1,6 @@
 import gymnasium as gym
 import numpy as np
+from agent.base import BaseAgent
 
 
 class TSCEnv(gym.Env):
@@ -23,16 +24,16 @@ class TSCEnv(gym.Env):
         """
         self.world = world
         self.eng = self.world.eng
-        self.n_agents = len(agents) * agents[0].sub_agents
+        self.n_agents: int = len(agents) * agents[0].sub_agents
         # test agents number == intersection number
         assert len(world.intersection_ids) == self.n_agents
-        self.agents = agents
+        self.agents: list[BaseAgent] = agents
         action_dims = [agent.action_space.n * agent.sub_agents for agent in agents]
         # total action space of all agents.
         self.action_space = gym.spaces.MultiDiscrete(action_dims)
         self.metric = metric
 
-    def step(self, actions):
+    def step(self, actions, run_nbr=0):
         """
         :param actions: keep action as N_agents * 1
         """
@@ -44,12 +45,12 @@ class TSCEnv(gym.Env):
         self.world.step(actions)
 
         if not len(self.agents) == 1:
-            obs = [agent.get_ob() for agent in self.agents]
+            obs = [agent.get_ob(run_nbr=run_nbr) for agent in self.agents]
             # obs = np.expand_dims(np.array(obs),axis=1)
             rewards = [agent.get_reward() for agent in self.agents]
             # rewards = np.expand_dims(np.array(rewards),axis=1)
         else:
-            obs = [self.agents[0].get_ob()]
+            obs = [self.agents[0].get_ob(run_nbr=run_nbr)]
             rewards = [self.agents[0].get_reward()]
         dones = [False] * self.n_agents
         # infos = {"metric": self.metric.update()}
@@ -57,11 +58,11 @@ class TSCEnv(gym.Env):
 
         return obs, rewards, dones, infos
 
-    def reset(self):
+    def reset(self, run_nbr=0):
         self.world.reset()
         if not len(self.agents) == 1:
-            obs = [agent.get_ob() for agent in self.agents]  # [agent, sub_agent==1, feature]
+            obs = [agent.get_ob(run_nbr=run_nbr) for agent in self.agents]  # [agent, sub_agent==1, feature]
             # obs = np.expand_dims(np.array(obs),axis=1)
         else:
-            obs = [self.agents[0].get_ob()]  # [agent==1, sub_agent, feature]
+            obs = [self.agents[0].get_ob(run_nbr=run_nbr)]  # [agent==1, sub_agent, feature]
         return obs

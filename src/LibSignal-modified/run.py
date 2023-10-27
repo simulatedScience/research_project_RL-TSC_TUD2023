@@ -72,36 +72,48 @@ class Runner:
         interface.Trainer_param_Interface(self.config)
         interface.ModelAgent_param_Interface(self.config)
 
-    def run(self, reset_logger: bool = True, run_id: str = ""):
+    def run(self,
+            filename_addon: str = "",
+            failure_chances: list = [0.0],
+            noise_chances: list = [0.0],
+            noise_ranges: list = [0.15],
+            num_repetitions: int = 1,
+            ):
         logging_level = logging.INFO
         if args.debug:
             logging_level = logging.DEBUG
             
-        fc = Registry.mapping['command_mapping']['setting'].param['failure_chance']
-        nc = Registry.mapping['command_mapping']['setting'].param['noise_chance']
-        nr = Registry.mapping['command_mapping']['setting'].param['noise_range']
-        run_identifier = f"_id={run_id}_fc={fc}_nc={nc}_nr={nr}"
-        if reset_logger:
-            logging.getLogger().handlers.clear()
-            filename_addon = run_identifier
-        else:
-            filename_addon = ""
         logger = setup_logging(logging_level, filename_addon=filename_addon)
-        
-        logger.info(f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " +
-            f"fc={Registry.mapping['command_mapping']['setting'].param['failure_chance']}, " +
-            f"nc={Registry.mapping['command_mapping']['setting'].param['noise_chance']}, " +
-            f"nr={Registry.mapping['command_mapping']['setting'].param['noise_range']}" +
-            f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
-            )
         
         self.trainer = Registry.mapping['trainer_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](logger)
         self.task = Registry.mapping['task_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](self.trainer)
-        start_time = time.time()
-        self.task.run()
-        logger.info(f"Total time taken: {time.time() - start_time}")
+        
+        for noise_chance in noise_chances:
+            for noise_range in noise_ranges:
+                if noise_chance == 0.0:
+                    if noise_range != noise_chances[0]:
+                        continue
+                    else:
+                        noise_range = 0.0 # no noise since noise_chance is 0.0
+                for failure_chance in failure_chances:
+                    first_model = True
+                    for run_id in range(num_repetitions):
+                        Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
+                        Registry.mapping['command_mapping']['setting'].param['noise_chance'] = noise_chance
+                        Registry.mapping['command_mapping']['setting'].param['noise_range'] = noise_range
+                        Registry.mapping['command_mapping']['setting'].param['seed'] = run_id
+                        self.trainer.load_seed_from_config()
+                        run_identifier = f"id={run_id}_fc={failure_chance}_nc={noise_chance}_nr={noise_range}"
+                        logger.info(
+                            f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
+                            f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
+                        )
+                        start_time = time.time()
+                        self.task.run(drop_load = not first_model)
+                        logger.info(f"Total time taken: {time.time() - start_time}")
+                        first_model = False
 
 
 if __name__ == '__main__':
@@ -121,30 +133,43 @@ if __name__ == '__main__':
     #     network = "sumo1x1",
     #     dataset = "onfly",
     # )
-    num_repetitions = 20
-    for noise_chance in [0.0, 1.0]:
-        for noise_range in [0.15]:
-            for failure_chance in [0.0, 0.05, 0.1, 0.15]:
-                for run_id in range(num_repetitions):
-                    args = parse_args()
-                    args = argparse.Namespace(
-                        thread_num = 8,
-                        ngpu = 1,
-                        prefix = "exp_1_no_perturbations_100", # exp_2_perturbed_100
-                        seed = run_id,
-                        debug = True,
-                        interface = "libsumo",
-                        delay_type = "apx",
+    # num_repetitions = 20
+    # for noise_chance in [0.0, 1.0]:
+    #     for noise_range in [0.15]:
+    #         for failure_chance in [0.0, 0.05, 0.1, 0.15]:
+    #             for run_id in range(num_repetitions):
+    args = parse_args()
+    args = argparse.Namespace(
+        thread_num = 8,
+        ngpu = 1,
+        prefix = "exp_4_disturbed_20", # exp_3_undisturbed_100
+        seed = 5,
+        debug = True,
+        interface = "libsumo",
+        delay_type = "apx",
 
-                        task = "tsc",
-                        agent = "presslight", # frap, presslight, colight, fixedtime
-                        world = "sumo",
-                        network = "sumo1x5_atlanta", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
-                        dataset = "onfly",
-                        
-                        failure_chance = failure_chance,
-                        noise_chance = noise_chance,
-                        noise_range = noise_range,
-                    )
-                    test = Runner(args)
-                    test.run(run_id=f"rep_{run_id}", reset_logger=False)
+        task = "tsc",
+        agent = "presslight", # frap, presslight, colight, fixedtime
+        world = "sumo",
+        network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
+        dataset = "onfly",
+        
+        failure_chance = 0.0, # failure_chance,
+        noise_chance = 0.0, # noise_chance,
+        noise_range = 0.0, # noise_range,
+    )
+    test = Runner(args)
+    # train
+    # test.run(
+    #     failure_chances=[0.0],
+    #     noise_chances=[0.0],
+    #     noise_ranges=[0.0],
+    #     num_repetitions=1,
+    # )
+    test
+    test.run(
+        failure_chances=[0.15, 0.1, 0.05, 0.0],
+        noise_chances=[1.0],
+        noise_ranges=[0.0, 0.15, 1.0, 5.0, 10.0],
+        num_repetitions=15,
+    )

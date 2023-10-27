@@ -270,8 +270,8 @@ class Intersection(object):
                 v_measures = dict()
                 v_measures['name'] = v
                 v_measures['wait'] = self.waiting_times[v] if v in self.waiting_times else 0
-                #TODO: CHEC ITS RIGHT CALCULATION?
-                lane_measures['queue_length'] = lane_measures['queue_length'] + 1
+                #TODO: CHEC ITS RIGHT CALCULATION? # SJ: no? only count waiting vehicles
+                lane_measures['queue_length'] += 1
                 v_measures['speed'] = self.eng.vehicle.getSpeed(v)
                 v_measures['position'] = self.eng.vehicle.getLanePosition(v)
                 vehicles.append(v_measures)

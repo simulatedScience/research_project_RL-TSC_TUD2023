@@ -69,6 +69,7 @@ class BaseTrainer(ABC):
         :return: None
         '''
         # https://pytorch.org/docs/stable/notes/randomness.html
+        self.seed = Registry.mapping['command_mapping']['setting'].param['seed']
         if self.seed is None:
             return
 

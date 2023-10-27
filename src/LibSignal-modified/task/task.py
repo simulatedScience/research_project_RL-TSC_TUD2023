@@ -30,7 +30,7 @@ class TSCTask(BaseTask):
     '''
     Register Traffic Signal Control task.
     '''
-    def run(self):
+    def run(self, drop_load=False):
         '''
         run
         Run the whole task, including training and testing.
@@ -42,7 +42,7 @@ class TSCTask(BaseTask):
             if Registry.mapping['model_mapping']['setting'].param['train_model']:
                 self.trainer.train()
             if Registry.mapping['model_mapping']['setting'].param['test_model']:
-                self.trainer.test(drop_load=False) # SJ: added drop_load=False
+                self.trainer.test(drop_load=drop_load) # SJ: added drop_load=False
         except RuntimeError as e:
             self._process_error(e)
             raise e

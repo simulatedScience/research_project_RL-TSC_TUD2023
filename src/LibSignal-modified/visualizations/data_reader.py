@@ -91,8 +91,8 @@ def extract_settings(line: str) -> dict:
     settings = {
         'fc': float(line.split("fc=")[1].split("_")[0]),
         'nc': float(line.split("nc=")[1].split("_")[0]),
-        'nr': float(line.split("nr=")[1]),
-        'rep': int(line.split("rep_")[1].split("_")[0])
+        'nr': float(line.split("nr=")[1]), # line ends after nr value
+        'rep': int(line.split("id=")[1].strip("rep_").split("_")[0])
     }
     return settings
 
