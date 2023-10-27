@@ -380,7 +380,7 @@ class World(object):
             sumo_cmd += ['-c', os.path.join(sumo_dict['dir'], sumo_dict['combined_file']),
                          '--no-warnings', str(sumo_dict['no_warning'])]
         self.net = os.path.join(sumo_dict['dir'], sumo_dict['roadnetFile'])
-        self.route = os.path.join(sumo_dict['dir'], sumo_dict['flowFile'])
+        self.routes_file_path = os.path.join(sumo_dict['dir'], sumo_dict['flowFile'])
         self.sumo_cmd = sumo_cmd
         self.warning = sumo_dict['no_warning']
         print("building world...")
@@ -477,6 +477,36 @@ class World(object):
         # get in_lanes and out_lanes
         self.in_lanes, self.out_lanes = self.get_in_out_lanes()
 
+    def estimate_throughput(self) -> int:
+        """
+        Estimate the throughput (number of vehicles passing through network) for the entire simulation based on the number of vehicles in the route file
+        
+        Returns:
+            int: estimated number of vehicles that will pass through the network
+        
+        Raises:
+            ValueError: if the routes file is not in a supported format (SUMO XML or Cityflow JSON file)
+        """
+        # For SUMO XML files
+        if self.routes_file_path.endswith('.xml'):
+            tree = ET.parse(self.routes_file_path)
+            root = tree.getroot()
+            vehicle_count = len(root.findall('.//vehicle'))
+            return vehicle_count
+        
+        # For Cityflow JSON files
+        if self.routes_file_path.endswith('.json'):
+            with open(self.routes_file_path, 'r') as file:
+                flows = json.load(file)
+            
+            # Since each flow represents one vehicle, simply count the flows
+            vehicle_count = len(flows)
+            
+            return vehicle_count
+
+        raise ValueError("Unsupported file format.")
+
+
     def generate_valid_phase(self):
         '''
         generate_valid_phase
@@ -545,7 +575,7 @@ class World(object):
         self.vehicle_trajectory, self.vehicle_maxspeed = self.get_vehicle_trajectory()
         self.run += 1
 
-    def reset(self):
+    def reset(self, expected_throughput=1000, total_sensor_reads=360):
         '''
         reset
         reset information, including vehicles, vehicle_trajectory, etc.
@@ -553,6 +583,8 @@ class World(object):
         :param: None
         :return: None
         '''
+        self.expected_throughput = expected_throughput
+        self.total_sensor_reads = total_sensor_reads
         if self.run != 0:
             # TODO: test why need switch in original code
             if self.interface_flag:
@@ -851,7 +883,7 @@ class World(object):
     #     return: planned depart time of all vehicles.
     #     """
     #     vehicles_all = dict()
-    #     tree = ET.parse(self.route)
+    #     tree = ET.parse(self.routes_file_path)
     #     root = tree.getroot()
     #     vehicles_all.update({obj.attrib['id']: int(float(obj.attrib['depart'])) \
     #         for obj in root.iter('vehicle')})

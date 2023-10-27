@@ -16,16 +16,33 @@ class RLAgent(BaseAgent):
         self.id = intersection_ids
         self.inter_obj = self.world.id2intersection[self.id]
         self.action_space = gym.spaces.Discrete(len(self.inter_obj.phases))
-        self.ob_generator = LaneVehicleGenerator(self.world, self.inter_obj,
-                                                 ["lane_count"], in_only=True, average=None)
+        self.ob_generator = LaneVehicleGenerator(
+                self.world, self.inter_obj,
+                ["lane_count"],
+                in_only=True,
+                average=None,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                TPR=self.TPR,
+                FPR=self.FPR,
+                seed=self.seed,
+                )
         self.phase_generator = IntersectionPhaseGenerator(self.world, self.inter_obj,
                                                           ['phase'], targets=['cur_phase'], negative=False)
         self.reward_generator = LaneVehicleGenerator(self.world, self.inter_obj,
                                                      ["lane_waiting_count"], in_only=True, average="all",
                                                      negative=True)
-        self.queue = LaneVehicleGenerator(self.world, self.inter_obj,
-                                                     ["lane_waiting_count"], in_only=True,
-                                                     negative=False)
+        self.queue = LaneVehicleGenerator(
+                self.world,
+                self.inter_obj,
+                ["lane_waiting_count"],
+                in_only=True,
+                negative=False,
+                average=None,
+                FAILURE_CHANCE=self.FAILURE_CHANCE,
+                TPR=self.TPR,
+                FPR=self.FPR,
+                seed=self.seed,
+                )
         self.delay = LaneVehicleGenerator(self.world, self.inter_obj,
                                                      ["lane_delay"], in_only=True, average="all",
                                                      negative=False)

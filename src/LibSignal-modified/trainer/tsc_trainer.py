@@ -34,6 +34,8 @@ class TSCTrainer(BaseTrainer):
         self.update_model_rate = Registry.mapping['trainer_mapping']['setting'].param['update_model_rate']
         self.update_target_rate = Registry.mapping['trainer_mapping']['setting'].param['update_target_rate']
         self.test_when_train = Registry.mapping['trainer_mapping']['setting'].param['test_when_train']
+        self.total_sensor_reads = self.steps / self.action_interval
+        self.expected_throughput = 0
         # replay file is only valid in cityflow now. 
         # TODO: support SUMO and Openengine later
         
@@ -60,7 +62,9 @@ class TSCTrainer(BaseTrainer):
         '''
         # traffic setting is in the world mapping
         self.world = Registry.mapping['world_mapping'][Registry.mapping['command_mapping']['setting'].param['world']](
-            self.path, Registry.mapping['command_mapping']['setting'].param['thread_num'],interface=Registry.mapping['command_mapping']['setting'].param['interface'])
+            self.path,
+            Registry.mapping['command_mapping']['setting'].param['thread_num'],
+            interface=Registry.mapping['command_mapping']['setting'].param['interface'])
 
     def create_metrics(self):
         '''
@@ -124,7 +128,11 @@ class TSCTrainer(BaseTrainer):
         for episode in range(self.episodes):
             # TODO: check this reset agent
             self.metric.clear()
-            last_obs = self.env.reset(run_nbr=episode)  # agent * [sub_agent, feature]
+            self.total_sensor_reads = self.steps / self.action_interval # update total sensor reads for training
+            last_obs = self.env.reset(
+                    run_nbr=episode,
+                    expected_throughput=self.expected_throughput,
+                    total_sensor_reads=self.total_sensor_reads)  # agent * [sub_agent, feature]
 
             for a in self.agents:
                 a.reset()
@@ -186,6 +194,7 @@ class TSCTrainer(BaseTrainer):
                 mean_loss = np.mean(np.array(episode_loss))
             else:
                 mean_loss = 0
+            self.expected_throughput = self.metric.throughput() # update expected throughput to last measured throughput
             # log training status
             self.writeLog("TRAIN", episode, self.metric.real_average_travel_time(),\
                 mean_loss, self.metric.rewards(), self.metric.queue(), self.metric.delay(), self.metric.throughput())
@@ -212,7 +221,11 @@ class TSCTrainer(BaseTrainer):
         :param e: number of episode
         :return self.metric.real_average_travel_time: travel time of vehicles
         '''
-        obs = self.env.reset(run_nbr=episode)
+        self.total_sensor_reads = self.test_steps / self.action_interval # update total sensor reads for test
+        obs = self.env.reset(
+                run_nbr=episode,
+                expected_throughput=self.expected_throughput,
+                total_sensor_reads=self.total_sensor_reads)
         self.metric.clear()
         for a in self.agents:
             a.reset()
@@ -232,6 +245,7 @@ class TSCTrainer(BaseTrainer):
                 self.metric.update(rewards)
             if all(dones):
                 break
+        self.expected_throughput = self.metric.throughput() # update expected throughput to last measured throughput
         # log testing process
         self.logger.info(f"Test step:{episode+1}/{self.episodes}, travel time :{self.metric.real_average_travel_time()}, "
                          + f"rewards:{self.metric.rewards()}, queue:{self.metric.queue()}, delay:{self.metric.delay()}, throughput:{int(self.metric.throughput())}"
@@ -248,6 +262,7 @@ class TSCTrainer(BaseTrainer):
         :param drop_load: decide whether to load pretrained model's parameters
         :return self.metric: including queue length, throughput, delay and travel time
         '''
+        self.expected_throughput = self.world.estimate_throughput()
         # print(f"testing with seed {self.seed}")
         if Registry.mapping['command_mapping']['setting'].param['world'] == 'cityflow':
             if self.save_replay:
@@ -265,7 +280,11 @@ class TSCTrainer(BaseTrainer):
             agent.reload_noise_config()
         attention_mat_list = []
         model_evaluations: int = 0 # count how often each agents' models are evaluated
-        obs = self.env.reset(run_nbr=0)
+        self.total_sensor_reads = self.test_steps / self.action_interval # update total sensor reads for test
+        obs = self.env.reset(
+            run_nbr=0,
+            expected_throughput=self.expected_throughput,
+            total_sensor_reads=self.total_sensor_reads)
         for a in self.agents:
             a.reset()
         for i in range(self.test_steps):
@@ -285,8 +304,12 @@ class TSCTrainer(BaseTrainer):
                 self.metric.update(rewards)
             if all(dones):
                 break
-        self.logger.info("Final Travel Time is %.4f, mean rewards: %.4f, queue: %.4f, delay: %.4f, throughput: %d" % (self.metric.real_average_travel_time(), \
-            self.metric.rewards(), self.metric.queue(), self.metric.delay(), self.metric.throughput()))
+        self.logger.info(
+            f"Final Travel Time is {self.metric.real_average_travel_time():.4f}, "
+            + f"mean rewards: {self.metric.rewards():.4f}, "
+            + f"queue: {self.metric.queue():.4f}, "
+            + f"delay: {self.metric.delay():.4f}, "
+            + f"throughput: {int(self.metric.throughput())}")
         return self.metric
 
     def writeLog(self, mode, step, travel_time, loss, cur_rwd, cur_queue, cur_delay, cur_throughput):

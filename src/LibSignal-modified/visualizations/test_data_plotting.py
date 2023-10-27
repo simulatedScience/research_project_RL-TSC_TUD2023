@@ -18,7 +18,7 @@ def plot_averaged_data_with_range(segregated_data, x_param, y_param):
     
     Args:
     - segregated_data (dict): Dictionary grouping data by noise settings.
-    - x_param (str): The noise setting for the x-axis ("fc", "nc", or "nr").
+    - x_param (str): The noise setting for the x-axis ("failure chance", "noise chance", or "noise range").
     - y_param (str): The performance metric for the y-axis (e.g., "throughput", "delay").
     """
     average_data = compute_averages(segregated_data)
@@ -43,7 +43,7 @@ def plot_averaged_data_with_range(segregated_data, x_param, y_param):
         min_values = [min_values[i] for i in sorted_indices]
         max_values = [max_values[i] for i in sorted_indices]
 
-        other_params = [param for param in ['fc', 'nc', 'nr'] if param != x_param]
+        other_params = [param for param in ['failure chance', 'noise chance', 'noise range'] if param != x_param]
         label = f"{other_params[0]}={key[0]}, {other_params[1]}={key[1]}"
         plt.fill_between(x_values, min_values, max_values, color=colormap(colors[idx]), alpha=0.2)
         plt.plot(x_values, avg_values, 'o-', label=label, color=colormap(colors[idx]))
@@ -72,9 +72,9 @@ def compute_averages(grouped_data: dict) -> list:
     
     for key, metrics in grouped_data.items():
         averaged_run = {
-            'fc': key[0],
-            'nc': key[1],
-            'nr': key[2]
+            'failure chance': key[0],
+            'noise chance': key[1],
+            'noise range': key[2]
         }
         for metric, values in metrics.items():
             avg_value = sum(values) / len(values)
@@ -96,13 +96,13 @@ def segregate_data_by_params(data, x_param):
     
     Args:
     - data (list): A list of dictionaries containing settings, averaged metrics, and metric ranges.
-    - x_param (str): The noise setting chosen for the x-axis ("fc", "nc", or "nr").
+    - x_param (str): The noise setting chosen for the x-axis ("failure chance", "noise chance", or "noise range").
     
     Returns:
     - dict: A dictionary grouping data by the noise settings not on the x-axis.
     """
     # Define the other parameters not on the x-axis
-    other_params = [param for param in ['fc', 'nc', 'nr'] if param != x_param]
+    other_params = [param for param in ['failure chance', 'noise chance', 'noise range'] if param != x_param]
     
     # Segregate data based on the other parameters
     segregated_data = {}
@@ -123,15 +123,15 @@ def main():
     # load test data from file
     grouped_data = read_and_group_test_data(filepath)
     # plot averaged data with ranges
-    plot_averaged_data_with_range(grouped_data, 'fc', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'fc', 'delay')
-    plot_averaged_data_with_range(grouped_data, 'fc', 'queue')
-    plot_averaged_data_with_range(grouped_data, 'nc', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'nc', 'delay')
-    plot_averaged_data_with_range(grouped_data, 'nc', 'queue')
-    plot_averaged_data_with_range(grouped_data, 'nr', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'nr', 'delay')
-    plot_averaged_data_with_range(grouped_data, 'nr', 'queue')
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput')
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue')
+    plot_averaged_data_with_range(grouped_data, 'noise chance', 'throughput')
+    plot_averaged_data_with_range(grouped_data, 'noise chance', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'noise chance', 'queue')
+    plot_averaged_data_with_range(grouped_data, 'noise range', 'throughput')
+    plot_averaged_data_with_range(grouped_data, 'noise range', 'delay')
+    plot_averaged_data_with_range(grouped_data, 'noise range', 'queue')
     
 if __name__ == '__main__':
     main()

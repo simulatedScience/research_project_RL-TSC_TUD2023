@@ -26,8 +26,8 @@ def parse_args():
     parser.add_argument('-a', '--agent', type=str, default="presslight", help="agent type of agents in RL environment") # SJ: switched agent default to presslight
     parser.add_argument('-w', '--world', type=str, default="sumo", choices=['cityflow','sumo'], help="simulator type") # SJ: switched world default to sumo
     parser.add_argument('--failure_chance', type=float, default=0.0, help="failure chance of sensors")
-    parser.add_argument('--noise_chance', type=float, default=0.0, help="chance of adding noise to NN inputs")
-    parser.add_argument('--noise_range', type=float, default=0.15, help=r"noise range for NN inputs. 95% of noise will be within this range")
+    parser.add_argument('--tpr', type=float, default=0.0, help="chance of adding noise to NN inputs")
+    parser.add_argument('--fpr', type=float, default=0.15, help=r"noise range for NN inputs. 95% of noise will be within this range")
     # parser.add_argument('-n', '--network', type=str, default="cityflow1x1", help="network name")
     parser.add_argument('-n', '--network', type=str, default="sumo1x1", help="network name")
     parser.add_argument('-d', '--dataset', type=str, default='onfly', help='type of dataset in training process')
@@ -75,8 +75,8 @@ class Runner:
     def run(self,
             filename_addon: str = "",
             failure_chances: list = [0.0],
-            noise_chances: list = [0.0],
-            noise_ranges: list = [0.15],
+            tprs: list = [0.0],
+            fprs: list = [0.15],
             num_repetitions: int = 1,
             ):
         logging_level = logging.INFO
@@ -90,22 +90,17 @@ class Runner:
         self.task = Registry.mapping['task_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](self.trainer)
         
-        for noise_chance in noise_chances:
-            for noise_range in noise_ranges:
-                if noise_chance == 0.0:
-                    if noise_range != noise_chances[0]:
-                        continue
-                    else:
-                        noise_range = 0.0 # no noise since noise_chance is 0.0
+        for tpr in tprs:
+            for fpr in fprs:
                 for failure_chance in failure_chances:
                     first_model = True
                     for run_id in range(num_repetitions):
                         Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
-                        Registry.mapping['command_mapping']['setting'].param['noise_chance'] = noise_chance
-                        Registry.mapping['command_mapping']['setting'].param['noise_range'] = noise_range
+                        Registry.mapping['command_mapping']['setting'].param['tpr'] = tpr
+                        Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
                         Registry.mapping['command_mapping']['setting'].param['seed'] = run_id
                         self.trainer.load_seed_from_config()
-                        run_identifier = f"id={run_id}_fc={failure_chance}_nc={noise_chance}_nr={noise_range}"
+                        run_identifier = f"id={run_id}_fc={failure_chance}_nc={tpr}_nr={fpr}"
                         logger.info(
                             f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
                             f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
@@ -134,15 +129,15 @@ if __name__ == '__main__':
     #     dataset = "onfly",
     # )
     # num_repetitions = 20
-    # for noise_chance in [0.0, 1.0]:
-    #     for noise_range in [0.15]:
+    # for tpr in [0.0, 1.0]:
+    #     for fpr in [0.15]:
     #         for failure_chance in [0.0, 0.05, 0.1, 0.15]:
     #             for run_id in range(num_repetitions):
     args = parse_args()
     args = argparse.Namespace(
         thread_num = 8,
         ngpu = 1,
-        prefix = "exp_4_disturbed_20", # exp_3_undisturbed_100
+        prefix = "exp_4_undisturbed_20", # exp_3_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo",
@@ -155,21 +150,21 @@ if __name__ == '__main__':
         dataset = "onfly",
         
         failure_chance = 0.0, # failure_chance,
-        noise_chance = 0.0, # noise_chance,
-        noise_range = 0.0, # noise_range,
+        tpr = 0.0, # true positive rate,
+        fpr = 0.0, # false positive rate,
     )
     test = Runner(args)
     # train
     # test.run(
     #     failure_chances=[0.0],
-    #     noise_chances=[0.0],
-    #     noise_ranges=[0.0],
+    #     tprs=[1.0],
+    #     fprs=[0.0],
     #     num_repetitions=1,
     # )
-    test
+    # test
     test.run(
         failure_chances=[0.15, 0.1, 0.05, 0.0],
-        noise_chances=[1.0],
-        noise_ranges=[0.0, 0.15, 1.0, 5.0, 10.0],
+        tprs=[0.6, 0.8, 0.95, 1.0],
+        fprs=[0.65, 0.3, 0.15, 0.0],
         num_repetitions=15,
     )

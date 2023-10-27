@@ -58,8 +58,8 @@ class TSCEnv(gym.Env):
 
         return obs, rewards, dones, infos
 
-    def reset(self, run_nbr=0):
-        self.world.reset()
+    def reset(self, run_nbr=0, expected_throughput=1000, total_sensor_reads=360):
+        self.world.reset(expected_throughput=expected_throughput, total_sensor_reads=total_sensor_reads)
         if not len(self.agents) == 1:
             obs = [agent.get_ob(run_nbr=run_nbr) for agent in self.agents]  # [agent, sub_agent==1, feature]
             # obs = np.expand_dims(np.array(obs),axis=1)

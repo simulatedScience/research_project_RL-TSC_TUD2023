@@ -40,8 +40,8 @@ class PressLightAgent(RLAgent):
                 ["lane_count"],
                 average=None,
                 FAILURE_CHANCE=self.FAILURE_CHANCE,
-                NOISE_CHANCE=self.NOISE_CHANCE,
-                NOISE_RANGE=self.NOISE_RANGE,
+                TPR=self.TPR,
+                FPR=self.FPR,
                 seed=self.seed,)
         self.phase_generator: IntersectionPhaseGenerator = IntersectionPhaseGenerator(world, inter_obj, ["phase"],
                                                           targets=["cur_phase"], negative=False)
@@ -51,9 +51,6 @@ class PressLightAgent(RLAgent):
                 ["pressure"],
                 average="all",
                 negative=True,
-                # FAILURE_CHANCE=self.FAILURE_CHANCE,
-                # NOISE_CHANCE=self.NOISE_CHANCE,
-                # NOISE_RANGE=self.NOISE_RANGE,
                 seed=self.seed)
         self.action_space = gym.spaces.Discrete(len(inter_obj.phases))
         if self.phase:
@@ -101,8 +98,8 @@ class PressLightAgent(RLAgent):
                 ["lane_count"],
                 average=None,
                 FAILURE_CHANCE=self.FAILURE_CHANCE,
-                NOISE_CHANCE=self.NOISE_CHANCE,
-                NOISE_RANGE=self.NOISE_RANGE,
+                TPR=self.TPR,
+                FPR=self.FPR,
                 seed=self.seed,)
         self.phase_generator = IntersectionPhaseGenerator(self.world, inter_obj, ["phase"],
                                                           targets=["cur_phase"], negative=False)
@@ -119,8 +116,8 @@ class PressLightAgent(RLAgent):
                 in_only=True,
                 negative=False,
                 FAILURE_CHANCE=self.FAILURE_CHANCE,
-                NOISE_CHANCE=self.NOISE_CHANCE,
-                NOISE_RANGE=self.NOISE_RANGE,
+                TPR=self.TPR,
+                FPR=self.FPR,
                 seed=self.seed,)
         self.delay = LaneVehicleGenerator(
                 self.world,

@@ -25,6 +25,10 @@ class LaneVehicleGenerator(BaseGenerator):
         "road" means take average of lanes on each road, 
         "all" means take average of all lanes.
     :param negative: boolean, whether return negative values (mostly for Reward).
+    :param FAILURE_CHANCE: float, chance of sensor failure (0.0 - 1.0). default 0.0 (no disturbance)
+    :param TPR: float, true positive rate for sensor detections (0.0 - 1.0). default 1.0 (no disturbance)
+    :param FPR: float, false positive rate for sensor detections (0.0 - 1.0). default 0.0 (no disturbance)
+    :param seed: int, random seed for consistent sensor failures. default None
     '''
     def __init__(self,
                  world,
@@ -34,17 +38,19 @@ class LaneVehicleGenerator(BaseGenerator):
                  average=None,
                  negative=False,
                  FAILURE_CHANCE=0.0,
-                 NOISE_CHANCE=0.0,
-                 NOISE_RANGE=0.0,
+                 TPR=1.0,
+                 FPR=0.0,
                  seed=None
                  ):
         self.world = world
         self.intersection = intersection
         self.seed = seed
+        if self.seed is None:
+            self.seed = np.random.randint(0, 2**16 - 1)
         
         self.FAILURE_CHANCE = FAILURE_CHANCE
-        self.NOISE_CHANCE = NOISE_CHANCE
-        self.NOISE_RANGE = NOISE_RANGE
+        self.TPR = TPR # true positive rate
+        self.FPR = FPR # false positive rate
 
         # get lanes of intersections
         self.lanes = []
@@ -175,17 +181,17 @@ class LaneVehicleGenerator(BaseGenerator):
             for road_lanes in self.lanes:
                 road_result = []
                 for lane_id in road_lanes:
-                    # SJ: add disturbance to the results
-                    # SJ: laneid required for deterministic random
+                    # add disturbance to the results
                     if self.average is None:
-                        # if self.seed + run_nbr == 5:
-                        #     pass#("unexpected seed")
+                        # simulate sensor failure, broken sensors remain broken are entire episode
                         if self.FAILURE_CHANCE > 0 and deterministic_random(lane_id, self.seed + run_nbr) < self.FAILURE_CHANCE:
                             result[lane_id] = 0
-                            # if np.random.random() < 0.001:
-                            #     print(f"Run {run_nbr}, seed{self.seed} -> disabled lane sensor: {lane_id}")
-                        elif self.NOISE_CHANCE > 0 and np.random.random() < self.NOISE_CHANCE:
-                            result[lane_id] = modify_with_relative_error(result[lane_id], range_value=self.NOISE_RANGE)
+                        else:
+                            # simulate noisy sensor readings
+                            # simulate missed detections when vehicles were actually there using true positive rate
+                            result[lane_id] = simulate_true_positives(result[lane_id], self.TPR)
+                            # simulate misdetections when vehicles were not actually there using false positive rate
+                            result[lane_id] += simulate_false_positives(self.world.expected_throughput, self.world.total_sensor_reads, self.FPR)
                     road_result.append(result[lane_id])
                 if self.average == "road" or self.average == "all":
                     road_result = np.mean(road_result)
@@ -212,34 +218,47 @@ class LaneVehicleGenerator(BaseGenerator):
         #     ret_list.append(0)
         #     ret = np.array(ret_list)
         return ret
-    
-def sample_discrete_gaussian(mean, std_dev):
-    """
-    Simplified sampling from the discrete Gaussian distribution using numpy's normal distribution and rounding.
-    
-    Args:
-        mean (float): The mean of the discrete Gaussian distribution.
-        std_dev (float): The standard deviation of the discrete Gaussian distribution.
-    
-    Returns:
-        (int) A sample from the discrete Gaussian distribution.
-    """
-    return int(np.round(np.random.normal(mean, std_dev)))
 
-def modify_with_relative_error(n: int, range_value: float = 0.15) -> int:
+def simulate_true_positives(n_samples: int, tpr: float = 0.60) -> int:
     """
-    Modify the given number `n` by introducing a relative error using Gaussian noise.
+    Simulate some of the vehicles that are actually there not being detected by the sensor using a Binomial distribution.
+    Each vehicle is detected with probability `tpr`.
     
     Args:
-        n (int): The number to be modified.
-        range_value (float): 2*standard deviation of the Gaussian noise = 95% of the values will be in the range [n-range_value, n+range_value].
+        n_samples (int): The number of vehicles to simulate.
+        tpr (float): The true positive rate (probability of a vehicle being detected).
     
     Returns:
-        (int) The modified value of `n` with the introduced relative error.
+        (int) The number of vehicles that were detected (always >= 0 and <= `n_samples`)
     """
-    std_dev = (range_value / 2) * n  # scale the standard deviation based on the original value
-    modified_value = n + sample_discrete_gaussian(0, std_dev)  # Add noise centered around 0
-    return max(0, modified_value) # ensure positive value
+    # Simulate N Bernoulli trials
+    detections = np.random.binomial(1, tpr, n_samples)
+    return detections.sum()
+
+def simulate_false_positives(vehicles_per_hour: float = 2800, sensor_reads_per_hour: float = 360, fpr: float = 0.65) -> int:
+    """
+    Simulate misdetections of vehicles that are not actually there using a Poisson distribution.
+    To achieve a false positive rate of `fpr` over the entire simulation, we calculate the mean number of false positives per timestep from the number of sensor reads and expected throughput.
+    V = throughput per hour
+    R = sensor reads per hour
+    FPR = false positive rate
+    
+    True vehicle detection mean: V/R
+    Mean number of false positives per timestep: V/R * FPR -> = mean of Poisson distribution
+    Mean detections per timestep with FPR: V/R * (1 + FPR)
+
+    Args:
+        vehicles_per_hour (float): The expected throughput of vehicles per hour.
+        sensor_reads_per_hour (float): The number of sensor reads per hour.
+        fpr (float): The false positive rate (false positives / total detections).
+
+    Returns:
+        int: Number of false positives in this timestep.
+    """
+    mean_false_positives = vehicles_per_hour / sensor_reads_per_hour * fpr
+    false_positives = np.random.poisson(mean_false_positives)
+    return false_positives
+
 
 def deterministic_random(input_data, original_seed, shape=None):
     """

@@ -12,16 +12,16 @@ class BaseAgent(object):
         self.seed = Registry.mapping['command_mapping']['setting'].param['seed']
         self.sub_agents = 1
         self.FAILURE_CHANCE = Registry.mapping['command_mapping']['setting'].param['failure_chance']
-        self.NOISE_CHANCE = Registry.mapping['command_mapping']['setting'].param['noise_chance']
-        self.NOISE_RANGE = Registry.mapping['command_mapping']['setting'].param['noise_range']
+        self.TPR = Registry.mapping['command_mapping']['setting'].param['tpr']
+        self.FPR = Registry.mapping['command_mapping']['setting'].param['fpr']
     
     def reload_noise_config(self):
         """
         Reload noise parameters from Registry.
         """
         self.FAILURE_CHANCE = Registry.mapping['command_mapping']['setting'].param['failure_chance']
-        self.NOISE_CHANCE = Registry.mapping['command_mapping']['setting'].param['noise_chance']
-        self.NOISE_RANGE = Registry.mapping['command_mapping']['setting'].param['noise_range']
+        self.TPR = Registry.mapping['command_mapping']['setting'].param['tpr']
+        self.FPR = Registry.mapping['command_mapping']['setting'].param['fpr']
         self.seed = Registry.mapping['command_mapping']['setting'].param['seed']
 
     def get_ob(self):
