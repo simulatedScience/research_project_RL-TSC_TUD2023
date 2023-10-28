@@ -169,7 +169,7 @@ class LaneVehicleGenerator(BaseGenerator):
         results = [self.world.get_info(fn) for fn in self.fns]
         #need modification here
         ret = np.array([])
-        for i in range(len(self.fns)):
+        for i, fn in enumerate(self.fns):
             result = results[i]
 
             # pressure returns result of each intersections, so return directly
@@ -181,8 +181,9 @@ class LaneVehicleGenerator(BaseGenerator):
             for road_lanes in self.lanes:
                 road_result = []
                 for lane_id in road_lanes:
-                    # add disturbance to the results
-                    if self.average is None:
+                    # add disturbance to the queue lengths/ vehicle counts, when not averaging
+                    # averaging indicates the function is used for reward calculation, which should not be disturbed
+                    if self.average is None and fn in ("lane_count", "lane_waiting_count"):
                         # simulate sensor failure, broken sensors remain broken are entire episode
                         if self.FAILURE_CHANCE > 0 and deterministic_random(lane_id, self.seed + run_nbr) < self.FAILURE_CHANCE:
                             result[lane_id] = 0

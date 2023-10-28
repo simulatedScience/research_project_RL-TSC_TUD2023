@@ -137,34 +137,41 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 8,
         ngpu = 1,
-        prefix = "exp_7_undisturbed_50", # exp_5_undisturbed_100
+        prefix = "exp_2_maxpressure", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo",
         delay_type = "apx",
 
         task = "tsc",
-        agent = "presslight", # frap, presslight, colight, fixedtime
+        agent = "maxpressure", # frap, presslight, colight, fixedtime
         world = "sumo",
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
         
         failure_chance = 0.0, # failure_chance,
-        tpr = 0.0, # true positive rate,
+        tpr = 1.0, # true positive rate,
         fpr = 0.0, # false positive rate,
     )
     test = Runner(args)
     # train
-    test.run(
-        failure_chances=[0.0], # 0.1
-        tprs=[0.0], # 0.8
-        fprs=[1.0], # 0.3
-        num_repetitions=1,
-    )
-    # test
     # test.run(
-    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
-    #     tprs=[0.6, 0.8, 0.95, 1.0],
-    #     fprs=[0.65, 0.3, 0.15, 0.0],
-    #     num_repetitions=15,
+    #     failure_chances=[0.1], # 0.1
+    #     tprs=[0.8], # 0.8
+    #     fprs=[0.3], # 0.3
+    #     num_repetitions=1,
     # )
+    # test
+    test.run(
+        failure_chances=[0.15, 0.1, 0.05, 0.0],
+        tprs=[0.6, 0.8, 0.95, 1.0],
+        fprs=[0.65, 0.3, 0.15, 0.0],
+        num_repetitions=15,
+    )
+    # test.run(
+    #     failure_chances=[0.0, 0.15],
+    #     tprs=[0.0, 1.0],
+    #     fprs=[1.0, 0.0],
+    #     num_repetitions=3,
+    # )
+

@@ -70,6 +70,8 @@ def read_test_data(filepath: str) -> list:
         # Skip blocks without the required number of lines
         if len(lines) < 2:
             continue
+        if len(lines) == 6:
+            lines = lines[:2] + lines[4:]
         
         run_info = extract_settings(lines[1])
         run_info.update(extract_metrics(lines[2]))
