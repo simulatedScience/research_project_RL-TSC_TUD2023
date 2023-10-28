@@ -100,7 +100,7 @@ class Runner:
                         Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
                         Registry.mapping['command_mapping']['setting'].param['seed'] = run_id
                         self.trainer.load_seed_from_config()
-                        run_identifier = f"id={run_id}_fc={failure_chance}_nc={tpr}_nr={fpr}"
+                        run_identifier = f"id={run_id}_fc={failure_chance}_tpr={tpr}_fpr={fpr}"
                         logger.info(
                             f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
                             f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 8,
         ngpu = 1,
-        prefix = "exp_4_undisturbed_20", # exp_3_undisturbed_100
+        prefix = "exp_7_undisturbed_50", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo",
@@ -155,16 +155,16 @@ if __name__ == '__main__':
     )
     test = Runner(args)
     # train
-    # test.run(
-    #     failure_chances=[0.0],
-    #     tprs=[1.0],
-    #     fprs=[0.0],
-    #     num_repetitions=1,
-    # )
-    # test
     test.run(
-        failure_chances=[0.15, 0.1, 0.05, 0.0],
-        tprs=[0.6, 0.8, 0.95, 1.0],
-        fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=15,
+        failure_chances=[0.0], # 0.1
+        tprs=[0.0], # 0.8
+        fprs=[1.0], # 0.3
+        num_repetitions=1,
     )
+    # test
+    # test.run(
+    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.15, 0.0],
+    #     num_repetitions=15,
+    # )

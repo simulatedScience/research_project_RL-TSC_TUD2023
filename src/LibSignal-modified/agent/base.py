@@ -23,6 +23,7 @@ class BaseAgent(object):
         self.TPR = Registry.mapping['command_mapping']['setting'].param['tpr']
         self.FPR = Registry.mapping['command_mapping']['setting'].param['fpr']
         self.seed = Registry.mapping['command_mapping']['setting'].param['seed']
+        print(f"Reloaded agent: Failure chance: {self.FAILURE_CHANCE}, TPR: {self.TPR}, FPR: {self.FPR}, seed: {self.seed}")
 
     def get_ob(self):
         raise NotImplementedError()

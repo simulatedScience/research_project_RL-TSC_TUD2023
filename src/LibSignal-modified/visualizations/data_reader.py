@@ -8,7 +8,7 @@ from collections import namedtuple
 import csv
 
 # Define the named tuple
-NoiseSettings = namedtuple('NoiseSettings', ['failure_chance', 'noise_chance', 'noise_range'])
+NoiseSettings = namedtuple('NoiseSettings', ['failure_chance', 'true_positive_rate', 'false_positive_rate'])
 
 
 def read_and_group_test_data(filepath: str) -> dict:
@@ -27,7 +27,7 @@ def read_and_group_test_data(filepath: str) -> dict:
     grouped_data = {}
     
     for run in data_list:
-        key = NoiseSettings(run['fc'], run['nc'], run['nr'])
+        key = NoiseSettings(run['failure chance'], run['true positive rate'], run['false positive rate'])
         
         if key not in grouped_data:
             grouped_data[key] = {
@@ -80,7 +80,7 @@ def read_test_data(filepath: str) -> list:
 
 def extract_settings(line: str) -> dict:
     """
-    Extract settings (fc, nc, nr, rep) from the given line and return as a dictionary.
+    Extract settings (fc, tpr, fpr, rep) from the given line and return as a dictionary.
     
     Args:
     - line (str): The line containing settings information.
@@ -89,9 +89,9 @@ def extract_settings(line: str) -> dict:
     - dict: A dictionary containing the extracted settings.
     """
     settings = {
-        'fc': float(line.split("fc=")[1].split("_")[0]),
-        'nc': float(line.split("nc=")[1].split("_")[0]),
-        'nr': float(line.split("nr=")[1]), # line ends after nr value
+        'failure chance': float(line.split("fc=")[1].split("_")[0]),
+        'true positive rate': float(line.split("tpr=")[1].split("_")[0]),
+        'false positive rate': float(line.split("fpr=")[1]), # line ends after fpr value
         'rep': int(line.split("id=")[1].strip("rep_").split("_")[0])
     }
     return settings
