@@ -6,10 +6,37 @@ Author: Sebastian Jost & GPT-4 (19.10.2023)
 
 from collections import namedtuple
 import csv
+import os
 
 # Define the named tuple
 NoiseSettings = namedtuple('NoiseSettings', ['failure_chance', 'true_positive_rate', 'false_positive_rate'])
 
+ABBREVIATIONS = {
+    "failure chance": "fc",
+    "true positive rate": "tpr",
+    "false positive rate": "fpr",
+}
+
+NETWORK_CONVERTER = {
+    "sumo1x3": "cologne3",
+    "sumo1x1": "cologne1",
+    "atlanta1x5": "atlanta1x5",
+}
+
+
+def get_fixedtime_data():
+    """
+    Return data for fixedtime agent on cologne3 network. WARNING: this data is hardcoded.
+    It was manually copied over from 2023_10_29-09_52_28_BRF.log
+    """
+    fixedtime_data = {
+        "travel_time": 122.7122,
+        "mean_rewards": -79.6240,
+        "queue": 10.3694,
+        "delay": 3.2262,
+        "throughput": 2797,
+    }
+    return fixedtime_data
 
 def read_and_group_test_data(filepath: str) -> dict:
     """
@@ -183,7 +210,69 @@ def read_rl_training_data(file_path: str):
                 test_records["delay"].append(delay)
                 test_records["throughput"].append(throughput)
 
-    return train_records, test_records
+    return train_records, test_records, noise_settings_from_DTL(file_path)
+
+def noise_settings_from_DTL(file_path: str) -> dict:
+    """
+    Extract the noise settings for the experiment specified by the given file path (*DTL.log)
+    Load corresponding *BRF.log file and extract noise settings from line 2.
+
+    Args:
+        file_path (str): Path to the *DTL.log file.
+
+    Returns:
+        dict: A dictionary containing the noise settings.
+    """
+    BRF_log_path = file_path[:-7] + "BRF.log"
+    with open(BRF_log_path, 'r') as file:
+        # extract noise seetings from line 2
+        line = file.readlines()[1]
+    noise_settings = extract_settings(line)
+    return noise_settings
+
+
+def exp_info_from_path(exp_path: str) -> str:
+    return experiment_name(*exp_config_from_path(exp_path))
+    
+
+def exp_config_from_path(exp_path: str, convert_network: bool=False) -> tuple[str, str, str, str]:
+    """
+    Extract the experiment name from the given path.
+    
+    Args:
+        exp_path (str): Path to the experiment folder.
+    
+    Returns:
+        tuple(str, str, str, str): A tuple containing the simulator, method, network, and experiment names.
+    """
+    # split path at "tsc"
+    tsc_path = exp_path.split('tsc')[1]
+    # split path at subfolders
+    subfolders = tsc_path.split('/')
+    method = subfolders[1]
+    simulator = method.split('_')[0]
+    method = method.split('_')[1]
+    network = subfolders[2]
+    if convert_network:
+        network = NETWORK_CONVERTER[network]
+    exp_name = subfolders[3]
+    return simulator, method, network, exp_name
+
+def experiment_name(simulator: str, method: str, network: str, exp_name: str) -> str:
+    """
+    Create a string containing the experiment name.
+    
+    Args:
+        simulator (str): Simulator name.
+        method (str): Method name.
+        network (str): Network name.
+        exp_name (str): Experiment name.
+    
+    Returns:
+        str: A string containing all experiment info.
+    """
+    return f'{simulator}_{method}_{network}_{exp_name}'
+
 
 if __name__ == "__main__":
     # prompt user to enter a file via filedialog

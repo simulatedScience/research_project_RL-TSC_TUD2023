@@ -6,17 +6,22 @@ Authors: Sebastian Jost & GPT-4 (24.10.2023)
 
 import tkinter as tk
 from tkinter import filedialog
+import os
 
 import matplotlib.pyplot as plt
+import matplotlib.colors as mplcolors
 import numpy as np
 
-from data_reader import read_and_group_test_data
+from data_reader import read_and_group_test_data, experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
+
 
 def plot_averaged_data_with_range(
         segregated_data: dict,
         x_param: str,
         y_param: str,
-        min_max: bool=False):
+        exp_path: str,
+        min_max: bool=None,
+        ):
     """
     Plot the averaged metric for each group along with its range.
     
@@ -24,13 +29,31 @@ def plot_averaged_data_with_range(
         segregated_data (dict): Dictionary grouping data by noise settings.
         x_param (str): The noise setting for the x-axis ("failure chance", "true positive rate", or "false positive rate").
         y_param (str): The performance metric for the y-axis (e.g., "throughput", "delay").
-        min_max (bool): Whether to use the minimum and maximum values for the range (True) or the standard deviation (False).
+        min_max (bool): Whether to use the minimum and maximum values for the range (True) or the standard deviation (False) or no range (None).
     """
     average_data = compute_averages(segregated_data)
     segregated_data = segregate_data_by_params(average_data, x_param)
     # Plotting
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 7))
     
+    legend_lines = []
+    legend_labels = []
+    
+    # Define the parameter ranges
+    noise_ranges = {
+        "fc": (0, 0.17),
+        "tpr": (0.55, 1.01),
+        "fpr": (0, 0.8),
+    }
+    # failure_chance_range = (0, 0.2)
+    # true_positive_rate_range = (0.6, 1)
+    # false_positive_rate_range = (0, 0.65)
+    hsv_ranges = [
+        (0.0, 1.0),
+        (0.4, 1.0),
+        (0.5, 1.0),
+    ]
+    x_param_color = 0.8
     # Define a colormap to differentiate lines
     # colormap = plt.get_cmap('tab10')
     # colors = np.linspace(0, 1, len(segregated_data))
@@ -52,31 +75,91 @@ def plot_averaged_data_with_range(
         avg_values = [avg_values[i] for i in sorted_indices]
         min_values = [min_values[i] for i in sorted_indices]
         max_values = [max_values[i] for i in sorted_indices]
-
-        color = parameters_to_color(
-                r=0.4,
-                g=key[0],
-                b=key[1],
-                r_range=(0, 1),
-                g_range=(0, 1),
-                b_range=(0, 1),
-                )
-        other_params = [param for param in ['failure chance', 'true positive rate', 'false positive rate'] if param != x_param]
+        
+        other_params = [ABBREVIATIONS[param] for param in ['failure chance', 'true positive rate', 'false positive rate'] if param != x_param]
         label = f"{other_params[0]}={key[0]}, {other_params[1]}={key[1]}"
-        plt.fill_between(x_values, min_values, max_values, color=color, alpha=0.2)
-        plt.plot(x_values, avg_values, 'o-', label=label, color=color)
+        
+        noise_settings = {
+            "fc": group[0]["failure chance"],
+            "tpr": group[0]["true positive rate"],
+            "fpr": group[0]["false positive rate"],
+        }
+        if other_params[0] == "tpr":
+            # swap tpr and fpr
+            noise_settings["tpr"], noise_settings["fpr"] = noise_settings["fpr"], noise_settings["tpr"]
+            noise_ranges["tpr"], noise_ranges["fpr"] = noise_ranges["fpr"], noise_ranges["tpr"]
+            # invert tpr within it's range in noise_ranges
+            # noise_settings["tpr"] = noise_ranges["tpr"][1] - noise_settings["tpr"] + noise_ranges["tpr"][0]
+        # Determine the color based on the parameters
+        color = parameters_to_hsv(
+            noise_settings[other_params[0]],
+            noise_settings[other_params[1]],
+            noise_settings[other_params[1]],
+            # noise_settings[ABBREVIATIONS[x_param]],
+            noise_ranges[other_params[0]],
+            noise_ranges[other_params[1]],
+            noise_ranges[other_params[1]],
+            # noise_ranges[ABBREVIATIONS[x_param]],
+            hsv_ranges=hsv_ranges,
+        )
+        if other_params[0] == "tpr":
+            # swap tpr and fpr
+            noise_settings["tpr"], noise_settings["fpr"] = noise_settings["fpr"], noise_settings["tpr"]
+            noise_ranges["tpr"], noise_ranges["fpr"] = noise_ranges["fpr"], noise_ranges["tpr"]
+        # noise_colors = {
+        #     "failure chance": color[0],
+        #     "true positive rate": color[1],
+        #     "false positive rate": color[2],
+        # }
+        # color = (color[0], color[1], x_param_color)
+        # color = (
+        #     noise_colors['failure chance'],
+        #     noise_colors['true positive rate'],
+        #     noise_colors['false positive rate'],
+        # )
+        color = mplcolors.hsv_to_rgb(color)
+
+        if min_max is not None:
+            plt.fill_between(x_values, min_values, max_values, color=color, alpha=0.2)
+        line, = plt.plot(x_values, avg_values, 'o-', label=label, color=color)
+        legend_lines.append(line)
+        legend_labels.append(label)
     
+    # add reference line for fixedtime
+    fixedtime_label = 'FixedTime 30s'
+    fixedtime_data = get_fixedtime_data()
+    fixedtime_line = plt.axhline(y=fixedtime_data[y_param], color='black', linestyle='--', alpha=0.5, label=fixedtime_label)
+    legend_lines.append(fixedtime_line)
+    legend_labels.append(fixedtime_label)
+
     # replace underscores with spaces
-    x_param = x_param.replace('_', ' ')
-    y_param = y_param.replace('_', ' ')
-    plt.xlabel(x_param)
-    plt.ylabel(y_param)
-    plt.title(f'{y_param} vs {x_param}')
-    plt.legend(loc='best')
+    x_param_text = x_param.replace('_', ' ')
+    y_param_text = y_param.replace('_', ' ')
+
+    sim, method, network, exp_name = exp_config_from_path(exp_path, convert_network=True)
+    exp_info = experiment_name(sim, method, network, exp_name)
+    exp_subtitle = f"Sim: {sim}, Method: {method}, Network: {network}, Exp: {exp_name}"
+
+    
+    # Reordering the legend entries for row-first filling
+    num_cols = 4
+    reordered_labels = [legend_labels[i::num_cols] for i in range(num_cols)]
+    reordered_labels = [label for sublist in reordered_labels for label in sublist]
+    reordered_lines = [legend_lines[legend_labels.index(label)] for label in reordered_labels]
+
+    plt.xlabel(x_param_text)
+    plt.ylabel(y_param_text)
+    plt.title(f'{y_param_text} vs {x_param_text}\n{exp_subtitle}')
+    plt.legend(reordered_lines, reordered_labels, loc='best', ncol=4)
     plt.grid(color="#dddddd")
     plt.tight_layout()
+    # try to create plots folder
+    try:
+        os.mkdir(os.path.join(exp_path, 'plots'))
+    except FileExistsError:
+        pass
+    plt.savefig(os.path.join(exp_path, 'plots', f'{x_param_text}_{y_param_text}_{exp_info}.png'))
     plt.show()
-
 
 
 def compute_averages(grouped_data: dict) -> list:
@@ -138,39 +221,75 @@ def segregate_data_by_params(data, x_param):
     return segregated_data
 
 
-def parameter_to_rgb(value: float, rgb_min: int=0, rgb_max: int=1) -> int:
-    """
-    Map a parameter value in the range [0, 1] to an RGB value based on the specified min and max.
+# def parameter_to_rgb(value: float, rgb_min: int=0, rgb_max: int=1) -> int:
+#     """
+#     Map a parameter value in the range [0, 1] to an RGB value based on the specified min and max.
     
-    Args:
-        value (float): Parameter value in the range [0, 1].
-        rgb_min (int): Minimum RGB value (default is 0).
-        rgb_max (int): Maximum RGB value (default is 255).
+#     Args:
+#         value (float): Parameter value in the range [0, 1].
+#         rgb_min (int): Minimum RGB value (default is 0).
+#         rgb_max (int): Maximum RGB value (default is 255).
     
-    Returns:
-        int: RGB value for the given parameter.
-    """
-    return rgb_min + value * (rgb_max - rgb_min)
+#     Returns:
+#         int: RGB value for the given parameter.
+#     """
+#     return rgb_min + value * (rgb_max - rgb_min)
 
-def parameters_to_color(r, g, b, r_range=(0, 1), g_range=(0, 1), b_range=(0, 1)):
+def parameters_to_hsv(value1, value2, value3, value1_range, value2_range, value3_range, hsv_ranges=((0, 1), (0, 1), (0, 1))):
     """
-    Map the given parameters to an RGB color based on their respective ranges.
+    Map the three values to an HSV color based on the given ranges.
     
     Args:
-        r (float): red value in the range [0, 1].
-        g (float): green value in the range [0, 1].
-        b (float): blue value in the range [0, 1].
-        r_range (tuple): Min and max RGB values for fc (default is (0, 255)).
-        g_range (tuple): Min and max RGB values for tpr (default is (0, 255)).
-        b_range (tuple): Min and max RGB values for fpr (default is (0, 255)).
+        value1 (float): The first value.
+        value2 (float): The second value.
+        value3 (float): The third value.
+        value1_range (tuple): Min and max value for the first parameter.
+        value2_range (tuple): Min and max value for the second parameter.
+        value3_range (tuple): Min and max value for the third parameter.
+        hsv_range (tuple): Min and max HSV values (default is ((0, 360), (0, 1), (0, 1))).
     
     Returns:
-        tuple: RGB color mapped to the given ranges
+        tuple: HSV color mapped to the given ranges.
     """
-    r = parameter_to_rgb(r, *r_range)
-    g = parameter_to_rgb(g, *g_range)
-    b = parameter_to_rgb(b, *b_range)
+    def parameter_to_hsv(value, value_min, value_max, hsv_min, hsv_max):
+        """Map a single value to an HSV value based on given ranges."""
+        return ((value - value_min) / (value_max - value_min)) * (hsv_max - hsv_min) + hsv_min
     
+    h = parameter_to_hsv(value1, *value1_range, *hsv_ranges[0])
+    s = parameter_to_hsv(value2, *value2_range, *hsv_ranges[1])
+    v = parameter_to_hsv(value3, *value3_range, *hsv_ranges[2])
+
+    return (h, s, v)
+
+def parameters_to_color(value1, value2, value3, value1_range, value2_range, value3_range, rgb_range=(0, 1)):
+    """
+    Map the three values to an RGB color based on the given ranges.
+    
+    Args:
+        value1 (float): The first value.
+        value2 (float): The second value.
+        value3 (float): The third value.
+        value1_range (tuple): Min and max value for the first parameter.
+        value2_range (tuple): Min and max value for the second parameter.
+        value3_range (tuple): Min and max value for the third parameter.
+        rgb_range (tuple): Min and max RGB values (default is (0, 255)).
+    
+    Returns:
+        tuple: RGB color mapped to the given ranges.
+    """
+    def parameter_to_rgb(value, value_min, value_max, rgb_min, rgb_max):
+        """Map a single value to an RGB value based on given ranges."""
+        # # map value from range [value_min, value_max] to [0, 1]
+        # value01 = (value - value_min) / (value_max - value_min)
+        # # map value from range [0, 1] to [rgb_min, rgb_max]
+        # color = value01 * (rgb_max - rgb_min) + rgb_min
+        # return color
+        return ((value - value_min) / (value_max - value_min)) * (rgb_max - rgb_min) + rgb_min
+    
+    r = parameter_to_rgb(value1, *value1_range, *rgb_range)
+    g = parameter_to_rgb(value2, *value2_range, *rgb_range)
+    b = parameter_to_rgb(value3, *value3_range, *rgb_range)
+
     return (r, g, b)
 
 
@@ -181,16 +300,21 @@ def main():
     filepath = filedialog.askopenfilename(initialdir=r".\data\output_data\tsc\sumo_presslight\sumo1x3")
     # load test data from file
     grouped_data = read_and_group_test_data(filepath)
+    min_max = None
+    exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
     # plot averaged data with ranges
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time')
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue')
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time')
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue')
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput')
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time')
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue')
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue', exp_path, min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max)
     
 if __name__ == '__main__':
     main()

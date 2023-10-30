@@ -77,6 +77,7 @@ class Runner:
             failure_chances: list = [0.0],
             tprs: list = [0.0],
             fprs: list = [0.15],
+            min_rep: int = 0,
             num_repetitions: int = 1,
             ):
         logging_level = logging.INFO
@@ -94,7 +95,7 @@ class Runner:
             for fpr in fprs:
                 for failure_chance in failure_chances:
                     first_model = True
-                    for run_id in range(num_repetitions):
+                    for run_id in range(min_rep, num_repetitions):
                         Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
                         Registry.mapping['command_mapping']['setting'].param['tpr'] = tpr
                         Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
@@ -137,14 +138,14 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 8,
         ngpu = 1,
-        prefix = "exp_2_maxpressure", # exp_5_undisturbed_100
+        prefix = "exp_8_undisturbed_50", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo",
         delay_type = "apx",
 
         task = "tsc",
-        agent = "maxpressure", # frap, presslight, colight, fixedtime
+        agent = "presslight", # frap, presslight, colight, fixedtime
         world = "sumo",
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
@@ -155,17 +156,18 @@ if __name__ == '__main__':
     )
     test = Runner(args)
     # train
-    # test.run(
-    #     failure_chances=[0.1], # 0.1
-    #     tprs=[0.8], # 0.8
-    #     fprs=[0.3], # 0.3
-    #     num_repetitions=1,
-    # )
+    #test.run(
+    #    failure_chances=[0.1], # 0.1
+    #    tprs=[0.8], # 0.8
+    #    fprs=[0.15], # 0.3
+    #    num_repetitions=1,
+    #)
     # test
     test.run(
         failure_chances=[0.15, 0.1, 0.05, 0.0],
         tprs=[0.6, 0.8, 0.95, 1.0],
         fprs=[0.65, 0.3, 0.15, 0.0],
+        min_rep=9,
         num_repetitions=15,
     )
     # test.run(
