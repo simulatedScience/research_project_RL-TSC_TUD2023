@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 
 from data_reader import read_and_group_test_data, get_fixedtime_data, NoiseSettings#, ABBREVIATIONS
-from test_data_plotting import compute_averages
+from test_data_plotting import compute_averages, segregate_data_by_params
 
 
 # Define a dictionary for abbreviations
@@ -15,8 +15,8 @@ ABBREVIATIONS = {
 # Define the agent identifiers based on experiment names
 AGENT_IDENTIFIERS = {
     "exp_2_maxpressure": "maxpressure",
-    "exp_8_disturbed_100": "disturbed",
-    "exp_8_undisturbed_50": "undisturbed"
+    "exp_8_undisturbed_50": "undisturbed",
+    "exp_9_disturbed_100": "disturbed",
 }
 
 def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
@@ -51,45 +51,62 @@ def extract_agent_metrics_data(filepaths: list[str],
     Returns:
     - dict: Data grouped by agent and noise setting.
     """
-    data = {} # keys = agents, values = dict where {keys = noise settings, values = metric values}
-    
+    agent_data = {}
     for filepath in filepaths:
-        experiment_name = extract_experiment_name_from_file(filepath)
-        agent_name = AGENT_IDENTIFIERS.get(experiment_name, experiment_name)
+        exp_name: str = extract_experiment_name_from_file(filepath)
+        exp_name: str = AGENT_IDENTIFIERS.get(exp_name, exp_name)
         grouped_data = read_and_group_test_data(filepath)
-        averaged_data = compute_averages(grouped_data)
-        
-        for config_tuple in configs:
-            config_label = get_noise_config_shortform(config_tuple)
-            if config_tuple in grouped_data:
-                # load previous data for agent
-                agent_data: dict = data.get(agent_name, {})
-                # summarzie data for config
-                avg_data: list[dict] = compute_averages({config_tuple: grouped_data[config_tuple]})
-                agent_data[config_tuple] = avg_data[config_tuple][metric]['average']
-                data[agent_name] = agent_data
+        averaged_data_list = compute_averages(grouped_data)
+        relevant_data = {}
+        # filter segregated data to only include the required configs
+        for avg_data in averaged_data_list:
+            config_tuple = NoiseSettings(
+                avg_data['failure chance'],
+                avg_data['true positive rate'],
+                avg_data['false positive rate']
+            )
+            if config_tuple in configs:
+                relevant_data[config_tuple] = avg_data
+        agent_data[exp_name] = relevant_data
     
+
     # Add fixedtime data
     fixedtime_value = get_fixedtime_data()[metric]
-    data["fixedtime"] = {"fc=0.0": fixedtime_value, "fc=0.1": fixedtime_value}
+    agent_data["fixedtime"] = fixedtime_value
+
+    return agent_data
+
+def extract_experiment_name_from_file(filepath: str) -> str:
+    """
+    Extracts the experiment name from the given log file (updated version).
     
-    return data
-
-
+    Args:
+    - filepath (str): Filepath to the log file.
+    
+    Returns:
+    - str: Extracted experiment name.
+    """
+    with open(filepath, 'r') as file:
+        # Read the first line of the file to get the experiment name
+        line = file.readline()
+        experiment_name = line.split(":")[1].split()[0]
+    return experiment_name
 
 def plot_agent_comparison_chart(data: dict, noise_configs: list[NoiseSettings], metric: str, fixedtime_value: float):
     cmap = plt.cm.viridis
     colors = [cmap(0.2), cmap(0.8)]
-    agents_order = ["maxpressure", "disturbed", "undisturbed"]
-    plt.figure(figsize=(12, 6))
+    agents_order = ["maxpressure", "undisturbed", "disturbed"]
+    plt.figure(figsize=(8, 6))
     bar_width = 0.35
     for i, agent in enumerate(agents_order):
         for j, config in enumerate(noise_configs):
             config_label = get_noise_config_shortform(config)
             bar_label = config_label if i == 0 else ""
             position = i * (len(noise_configs) + 1) * bar_width + j * bar_width
-            plt.bar(position, data[agent][f"fc={config.failure_chance}"], color=colors[j], label=bar_label, width=bar_width)
-    plt.axhline(fixedtime_value, color='grey', linestyle='--', label=f"FixedTime")
+            plt.bar(position, data[agent][config][metric]["average"], color=colors[j], label=bar_label, width=bar_width)
+            # add error bars with standard deviation
+            plt.errorbar(position, data[agent][config][metric]["average"], yerr=data[agent][config][metric]["std"], color='black', capsize=3)
+    plt.axhline(fixedtime_value, color='grey', linestyle='--', label=f"FixedTime 30s")
     tick_positions = [(i * (len(noise_configs) + 1) + 0.5) * bar_width for i in range(len(agents_order))]
     plt.xticks(tick_positions, agents_order)
     plt.xlabel('Agent')
@@ -106,8 +123,8 @@ def main():
                             "data", "output_data", "tsc")
     # Hardcoded file paths with experiment names and "logger" subfolder
     filepath1 = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log"
-    filepath2 = r"sumo_presslight\sumo1x3\exp_8_disturbed_100\logger\2023_10_29-18_23_05_BRF_joined.log"
-    filepath3 = r"sumo_presslight\sumo1x3\exp_5_disturbed_100\logger\2023_10_27-22_35_39_BRF.log"
+    filepath2 = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log"
+    filepath3 = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log"
     
     # list of file paths
     filepaths = [filepath1, filepath2, filepath3]
