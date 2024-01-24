@@ -20,6 +20,7 @@ def plot_averaged_data_with_range(
         x_param: str,
         y_param: str,
         exp_path: str,
+        y_lim: tuple=None,
         min_max: bool=None,
         ):
     """
@@ -34,7 +35,10 @@ def plot_averaged_data_with_range(
     average_data = compute_averages(segregated_data)
     segregated_data = segregate_data_by_params(average_data, x_param)
     # Plotting
-    plt.figure(figsize=(10, 7))
+    # plt.figure(figsize=(10, 7))
+    plt.figure(figsize=(8.8, 10))
+    # set subplot configuration
+    plt.gcf().subplots_adjust(left=0.075, bottom=0.125, right=0.98, top=0.82, wspace=None, hspace=None)
     
     legend_lines = []
     legend_labels = []
@@ -149,6 +153,9 @@ def plot_averaged_data_with_range(
 
     plt.xlabel(x_param_text)
     plt.ylabel(y_param_text)
+    # set y limits
+    if y_lim is not None:
+        plt.ylim(*y_lim)
     plt.title(f'{y_param_text} vs {x_param_text}\n{exp_subtitle}')
     plt.legend(reordered_lines, reordered_labels, loc='best', ncol=4)
     plt.grid(color="#dddddd")
@@ -303,18 +310,20 @@ def main():
     min_max = None
     exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
     # plot averaged data with ranges
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue', exp_path, min_max)
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max)
+    ylim_travel_time = (60, 200)
+    ylim_throughput = (2400, 2900)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max=min_max)
+    plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max=min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue', exp_path, min_max=min_max)
+    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max=min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue', exp_path, min_max=min_max)
+    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max=min_max)
     
 if __name__ == '__main__':
     main()

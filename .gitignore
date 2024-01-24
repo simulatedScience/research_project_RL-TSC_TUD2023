@@ -10,5 +10,11 @@ temp_images
 others_code
 literature
 gym_practice
-*.zip
 src/LibSignal-modified/run tests.py
+# ignore presentation (includes too many images)
+presentation/*
+# ignore some files
+*.zip
+*.pdf
+latex-template-cgv/*
+!presentation/RL TSC presentation_SJ_TUD2023.pdf

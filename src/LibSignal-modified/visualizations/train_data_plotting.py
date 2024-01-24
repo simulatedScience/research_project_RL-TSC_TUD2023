@@ -23,7 +23,10 @@ def plot_metric_over_episodes(metric, train_data, test_data, exp_path, subtitle=
     if subtitle:
         subtitle += "\n"
     exp_subtitle = subtitle + f"Sim: {sim}, Method: {method}, Network: {network}, Exp: {exp_name}"
-    plt.figure(figsize=(12, 6))
+    # plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(10, 4))
+    # set subplot configuration
+    plt.gcf().subplots_adjust(left=0.075, bottom=0.125, right=0.98, top=0.82, wspace=None, hspace=None)
     plt.plot(train_data["episode"], train_data[metric], label=f"Train {metric}", marker='o')
     plt.plot(test_data["episode"], test_data[metric], label=f"Test {metric}", marker='x')
     plt.xlabel("Episode")
