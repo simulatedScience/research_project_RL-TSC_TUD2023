@@ -51,10 +51,10 @@ Phase over time
 
 | Paper Title | Road Network(s) | RL Algorithm | Simulator |
 |-------------|-----------------|--------------|-----------|
-| robust RL for TSC | single intersection | double DQN | SUMO |
-| PressLight | Qingdao Rd., Jinan 1x3;  Beaver Ave., State College 1x5;  8-th to 11-th Ave., NYC (4 separate networks), 1x16 each | DQN with  experience replay | cityflow |
-| MPLight /  A thousand Lights | 4x4 grid;  Manhattan | DQN with (shared)  experience replay | cityflow |
-| FRAP (phase   competition   signal control) | Atlanta 1x5;  Jinan 7 intersections;  Hangzhou 1x6 | DQN  ? likely with   experience replay ? | SUMO |
-| CoLight | synth. Arterial 1x3;  synth. Grid 3x3;  synth. Grid 6x6;  Manhattan 196=7x28;  Gudang Sub-district, Hangzhou, 4x4;  Dongfeng Sub-district, Jinan, 3x4 | unknown -> see code | cityflow |
-| RL Benchmarks for TSC | synth. grid 4x4;  synth. Ave. grid 4x4;  Cologne 1x3;  Ingolstadt 1x7 | DQN using Preferred RL library | SUMO |
+| [robust RL for TSC](https://doi.org/10.1007/s42421-020-00029-6) | single intersection | double DQN | SUMO |
+| [PressLight](https://doi.org/10.1145/3292500.3330949) | Qingdao Rd., Jinan 1x3;  Beaver Ave., State College 1x5;  8-th to 11-th Ave., NYC (4 separate networks), 1x16 each | DQN with  experience replay | cityflow |
+| [MPLight /  A thousand Lights](https://doi.org/10.1609/aaai.v34i04.5744) | 4x4 grid;  Manhattan | DQN with (shared)  experience replay | cityflow |
+| [FRAP (phase   competition   signal control)](https://doi.org/10.1145/3357384.3357900) | Atlanta 1x5;  Jinan 7 intersections;  Hangzhou 1x6 | DQN  ? likely with   experience replay ? | SUMO |
+| [CoLight](https://doi.org/10.1145/3357384.3357902) | synth. Arterial 1x3;  synth. Grid 3x3;  synth. Grid 6x6;  Manhattan 196=7x28;  Gudang Sub-district, Hangzhou, 4x4;  Dongfeng Sub-district, Jinan, 3x4 | unknown -> see code | cityflow |
+| [RL Benchmarks for TSC](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/f0935e4cd5920aa6c7c996a5ee53a70f-Abstract-round1.html) | synth. grid 4x4;  synth. Ave. grid 4x4;  Cologne 1x3;  Ingolstadt 1x7 | DQN using Preferred RL library | SUMO |
 ...
