@@ -57,4 +57,3 @@ Phase over time
 | [FRAP (phase   competition   signal control)](https://doi.org/10.1145/3357384.3357900) | Atlanta 1x5;  Jinan 7 intersections;  Hangzhou 1x6 | DQN  ? likely with   experience replay ? | SUMO |
 | [CoLight](https://doi.org/10.1145/3357384.3357902) | synth. Arterial 1x3;  synth. Grid 3x3;  synth. Grid 6x6;  Manhattan 196=7x28;  Gudang Sub-district, Hangzhou, 4x4;  Dongfeng Sub-district, Jinan, 3x4 | unknown -> see code | cityflow |
 | [RL Benchmarks for TSC](https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/f0935e4cd5920aa6c7c996a5ee53a70f-Abstract-round1.html) | synth. grid 4x4;  synth. Ave. grid 4x4;  Cologne 1x3;  Ingolstadt 1x7 | DQN using Preferred RL library | SUMO |
-...
