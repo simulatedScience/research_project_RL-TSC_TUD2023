@@ -16,10 +16,11 @@ Options to get more data:
 
 - Write instructions for how to reproduce the experiments, add `requirements.txt` etc.
 
-- Verify assumptions of statistical models
+- ✔ CORRECTED: Verify assumptions of statistical models
     - Measure TPR & FPR in simulation to verify that a given setting leads to the expected results
     - Add correction factor for TPR/ FPR. Currently:
     measured incorrect detections=(detected vehicles)/TPR⋅FPR=(incorrect detections)/TPR  
+    - The correctness of the simulation can be tested using `src/LibSignal_modified/tpr_test.py`
 
 - Verify results in a second environment (road network)
 
