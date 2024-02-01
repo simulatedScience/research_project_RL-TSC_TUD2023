@@ -16,5 +16,9 @@ presentation/*
 # ignore some files
 *.zip
 *.pdf
+*.doc
+*.docx
+.pptx
+misc/*
 latex-template-cgv/*
 !presentation/RL TSC presentation_SJ_TUD2023.pdf
