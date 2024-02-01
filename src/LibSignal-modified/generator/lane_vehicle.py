@@ -256,6 +256,10 @@ def simulate_false_positives(vehicles_per_hour: float = 2800, sensor_reads_per_h
     Returns:
         int: Number of false positives in this timestep.
     """
+    if fpr == 1:
+        raise ValueError("FPR cannot be 1 (division by zero in simulation of FPR=1).")
+    if tpr == 0:
+        raise ValueError("Cannot simulate FPR with TPR=0. By definition, TPR=0 leads to all detections being false positives.")
     # mean_false_positives = vehicles_per_hour / sensor_reads_per_hour * fpr
     mean_false_positives = fpr*tpr*vehicles_per_hour / (1-fpr) / sensor_reads_per_hour
     false_positives = np.random.poisson(mean_false_positives)
