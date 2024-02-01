@@ -14,12 +14,14 @@ Options to get more data:
     - Train on synthetic data with different arrival rates, test on real data
     - reverse time and/or destinations of first dataset for more diverse data
 
+- Write instructions for how to reproduce the experiments, add `requirements.txt` etc.
+
 - Verify assumptions of statistical models
     - Measure TPR & FPR in simulation to verify that a given setting leads to the expected results
     - Add correction factor for TPR/ FPR. Currently:
     measured incorrect detections=(detected vehicles)/TPR⋅FPR=(incorrect detections)/TPR  
 
-- Verify results in a second environment
+- Verify results in a second environment (road network)
 
 - Repeat Experiments many more times to bring down standard deviation in Fig. 10 
 

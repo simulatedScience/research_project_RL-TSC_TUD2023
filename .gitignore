@@ -18,7 +18,8 @@ presentation/*
 *.pdf
 *.doc
 *.docx
-.pptx
+*.pptx
 misc/*
 latex-template-cgv/*
+src/gym_intro/*
 !presentation/RL TSC presentation_SJ_TUD2023.pdf
