@@ -192,7 +192,7 @@ class LaneVehicleGenerator(BaseGenerator):
                             # simulate missed detections when vehicles were actually there using true positive rate
                             result[lane_id] = simulate_true_positives(result[lane_id], self.TPR)
                             # simulate misdetections when vehicles were not actually there using false positive rate
-                            result[lane_id] += simulate_false_positives(self.world.expected_throughput, self.world.total_sensor_reads, self.FPR)
+                            result[lane_id] += simulate_false_positives(self.world.expected_throughput, self.world.total_sensor_reads, self.FPR, self.TPR)
                     road_result.append(result[lane_id])
                 if self.average == "road" or self.average == "all":
                     road_result = np.mean(road_result)
@@ -236,7 +236,7 @@ def simulate_true_positives(n_samples: int, tpr: float = 0.60) -> int:
     detections = np.random.binomial(1, tpr, n_samples)
     return detections.sum()
 
-def simulate_false_positives(vehicles_per_hour: float = 2800, sensor_reads_per_hour: float = 360, fpr: float = 0.65) -> int:
+def simulate_false_positives(vehicles_per_hour: float = 2800, sensor_reads_per_hour: float = 360, fpr: float = 0.65, tpr: float=1.0) -> int:
     """
     Simulate misdetections of vehicles that are not actually there using a Poisson distribution.
     To achieve a false positive rate of `fpr` over the entire simulation, we calculate the mean number of false positives per timestep from the number of sensor reads and expected throughput.
@@ -256,7 +256,8 @@ def simulate_false_positives(vehicles_per_hour: float = 2800, sensor_reads_per_h
     Returns:
         int: Number of false positives in this timestep.
     """
-    mean_false_positives = vehicles_per_hour / sensor_reads_per_hour * fpr
+    # mean_false_positives = vehicles_per_hour / sensor_reads_per_hour * fpr
+    mean_false_positives = fpr*tpr*vehicles_per_hour / (1-fpr) / sensor_reads_per_hour
     false_positives = np.random.poisson(mean_false_positives)
     return false_positives
 
