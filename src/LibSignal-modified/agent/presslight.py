@@ -70,7 +70,7 @@ class PressLightAgent(RLAgent):
         self.batch_size = Registry.mapping['model_mapping']['setting'].param['batch_size']
         self.dic_agent_conf = Registry.mapping['model_mapping']['setting']
         self.dic_traffic_env_conf = Registry.mapping['world_mapping']['setting']
-        
+        # initialize DDQN networks
         self.model: DQNNet = self._build_model()
         self.target_model: DQNNet = self._build_model()
         self.update_target_network()
@@ -272,8 +272,11 @@ class PressLightAgent(RLAgent):
         :return: value of loss
         '''
         samples = random.sample(self.replay_buffer, self.batch_size)
-        b_t, b_tp, rewards, actions = self._batchwise(samples)
-        out = self.target_model(b_tp, train=False)
+        # calculate acions chosen by the actor
+        b_t, b_tp1, rewards, actions = self._batchwise(samples)
+        # evaluate chosen actions using the target model
+        out = self.target_model(b_tp1, train=False)
+        # calculate new Q-value for DDQN actor network
         target = rewards + self.gamma * torch.max(out, dim=1)[0]
         target_f = self.model(b_t, train=False)
         for i, action in enumerate(actions):
@@ -289,7 +292,7 @@ class PressLightAgent(RLAgent):
 
     def update_target_network(self):
         '''
-        update_target_network
+        update_target_network by copying weights from the actor network.
         Update params of target network.
 
         :param: None

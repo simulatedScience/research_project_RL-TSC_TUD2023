@@ -128,23 +128,27 @@ class TSCTrainer(BaseTrainer):
         for episode in range(self.episodes):
             # TODO: check this reset agent
             self.metric.clear()
-            self.total_sensor_reads = self.steps / self.action_interval # update total sensor reads for training
+            self.total_sensor_reads = self.steps / self.action_interval #SJ: update total sensor reads for training
+            # get initial observation
             last_obs = self.env.reset(
                     run_nbr=episode,
                     expected_throughput=self.expected_throughput,
                     total_sensor_reads=self.total_sensor_reads)  # agent * [sub_agent, feature]
-
+            # reset agent of each intersection
             for a in self.agents:
                 a.reset()
             if Registry.mapping['command_mapping']['setting'].param['world'] == 'cityflow':
+                # in cityflow environment, save replay file of episode
                 if self.save_replay and episode % self.save_rate == 0:
                     self.env.eng.set_save_replay(True)
                     self.env.eng.set_replay_file(os.path.join(self.replay_file_dir, f"episode_{episode}.txt"))
                 else:
                     self.env.eng.set_save_replay(False)
+            # start training one episode
             episode_loss = []
             i = 0
             while i < self.steps:
+                # agents only act every `action_interval` time steps
                 if i % self.action_interval == 0:
                     last_phase = np.stack([agent.get_phase() for agent in self.agents])  # [agent, intersections]
 
@@ -178,12 +182,14 @@ class TSCTrainer(BaseTrainer):
                         # self.dataset.flush([agent.replay_buffer for agent in self.agents])
                     total_decision_num += 1
                     last_obs = obs
+                # after we started learning, update the actor network every `self.update_model_rate` steps
                 if total_decision_num > self.learning_start and\
                         total_decision_num % self.update_model_rate == self.update_model_rate - 1:
 
                     cur_loss_q = np.stack([agent.train() for agent in self.agents])  # TODO: training
 
                     episode_loss.append(cur_loss_q)
+                # after we started learning, update the target network every `self.update_target_rate` steps
                 if total_decision_num > self.learning_start and \
                         total_decision_num % self.update_target_rate == self.update_target_rate - 1:
                     [agent.update_target_network() for agent in self.agents]

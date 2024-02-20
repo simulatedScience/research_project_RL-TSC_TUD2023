@@ -7,20 +7,31 @@
 
 - check any new research on the topic
 
-- double-check which learning algorithm is used in the LibSignal code
+- **✔ Checked:** double-check which learning algorithm is used in the LibSignal code
+  -> The Implementation of PressLight uses Double DQN (DDQN).  
+  Actor is update using Bellman equation every `update_model_rate` steps.  
+  Target network is updated every `update_target_rate` steps by copying the actor's weights.  
+  Is DDQN still a good enough choice of algorithm in 2024? It's very simple and easy to implement.
 
 - Verify that training and test dataset are different. Repeat experiments if not.
 Options to get more data:
     - Train on synthetic data with different arrival rates, test on real data
     - reverse time and/or destinations of first dataset for more diverse data
+  
+  **Notes:**  
+  Vehicles are added into the simulation in `world/world_sumo_disturbed.py` `ln. 532` based on a sumo config.
+  Upon initialisation, the class `World` generates a terminal command used to start SUMO. This contains info like the road network file and the route/ flow file. (See `ln. 370` in `world/world_sumo_disturbed.py`) Which files are loaded is determined by the sumo config file found in `configs/sim` (e.g. `sumo1x3.cfg`). This config is loaded (JSON format) to get the relevant file paths.  
+  During training, the environment is reset for each episode in `tsc_trainer.train()` (see `self.env.reset()`). This does not indicate any switch of datasets between training and testing. Neither does the similar reset in `tsc_trainer.train_test()`.
+
 
 - Write instructions for how to reproduce the experiments, add `requirements.txt` etc.
 
-- ✔ CORRECTED: Verify assumptions of statistical models
+- **✔ CORRECTED:** Verify that the TPR and FPR measured in the simulation are the same as the values that are set.
     - Measure TPR & FPR in simulation to verify that a given setting leads to the expected results
     - Add correction factor for TPR/ FPR. Currently:
     measured incorrect detections=(detected vehicles)/TPR⋅FPR=(incorrect detections)/TPR  
     - The correctness of the simulation can be tested using `src/LibSignal_modified/tpr_test.py`
+  In original version, the measured FPR was about half of the expected FPR and depended on the TPR.
 
 - Verify results in a second environment (road network)
 
@@ -29,6 +40,7 @@ Options to get more data:
 - Understand & explain, why the agent trained on disturbed data performs worse on clean data than on disturbed data. (see Fig. 10 travel time chart)
 
 - Test more different agents (FRAP, CoLight)
+
 
 ### On policy visualization
 

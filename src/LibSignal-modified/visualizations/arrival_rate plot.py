@@ -18,7 +18,7 @@ def calculate_centered_arrival_rate_padded(data, window_length_seconds):
         times (list of int): List of times.
         rates_per_hour (list of float): List of arrival rates (vehicles/hour) corresponding to the times.
     """
-    start_times = [entry['startTime'] for entry in data]
+    start_times = [round(entry['startTime']) for entry in data]
     counts = Counter(start_times)
     
     max_time = 3600  # Simulation runs for 3600s
@@ -30,6 +30,7 @@ def calculate_centered_arrival_rate_padded(data, window_length_seconds):
         current_count = sum(counts.get(time, 0) for time in range(t - half_window, t + half_window))
         rate = (current_count / window_length_seconds) * 3600
         rates_per_hour[t] = rate
+        print(f"count at {t = :.2f}: {current_count} | {rate = :.2f}")
         
     return times, rates_per_hour
 

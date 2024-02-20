@@ -360,8 +360,8 @@ class World(object):
             self.interface_flag = False
         else:
             raise Exception('NOT IMPORTED YET')
-        with open(sumo_config) as f:
-            sumo_dict = json.load(f)
+        with open(sumo_config) as file:
+            sumo_dict = json.load(file)
         if sumo_dict['gui'] == "True":
             sumo_cmd = [sumolib.checkBinary('sumo-gui')]
         else:
@@ -529,7 +529,7 @@ class World(object):
         for intsec in self.intersections:
             intsec.observe(self.step_length, self.max_distance)
         # TODO: register vehicles here
-        entering_v = self.eng.simulation.getDepartedIDList()
+        entering_v = self.eng.simulation.getDepartedIDList() #SJ: add new vehicles to simulation
         for v in entering_v:
             self.inside_vehicles.update({v: self.get_current_time()})
         exiting_v = self.eng.simulation.getArrivedIDList()

@@ -136,13 +136,13 @@ if __name__ == '__main__':
     #             for run_id in range(num_repetitions):
     args = parse_args()
     args = argparse.Namespace(
-        thread_num = 8,
-        ngpu = 1,
-        prefix = "exp_8_undisturbed_50", # exp_5_undisturbed_100
+        thread_num = 14, # use 8 CPU threads
+        ngpu = 1, # use 1 GPU
+        prefix = "exp2_1_disturbed_50", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
-        interface = "libsumo",
-        delay_type = "apx",
+        interface = "libsumo", # use (lib)sumo for simulation
+        delay_type = "apx", # approximated delay
 
         task = "tsc",
         agent = "presslight", # frap, presslight, colight, fixedtime
@@ -155,21 +155,27 @@ if __name__ == '__main__':
         fpr = 0.0, # false positive rate,
     )
     test = Runner(args)
-    # train
-    #test.run(
-    #    failure_chances=[0.1], # 0.1
-    #    tprs=[0.8], # 0.8
-    #    fprs=[0.15], # 0.3
-    #    num_repetitions=1,
-    #)
-    # test
+    # train with high sensor failure rate
     test.run(
-        failure_chances=[0.15, 0.1, 0.05, 0.0],
-        tprs=[0.6, 0.8, 0.95, 1.0],
-        fprs=[0.65, 0.3, 0.15, 0.0],
-        min_rep=9,
-        num_repetitions=15,
+        failure_chances=[0.1],
+        tprs=[0.8],
+        fprs=[0.3],
+        num_repetitions=1,
     )
+    # train without sensor failures
+    # test.run(
+    #     failure_chances=[0.0],
+    #     tprs=[1.0],
+    #     fprs=[0.0],
+    #     num_repetitions=1,
+    # )
+    # test with several real-world sensor failure rates
+    # test.run(
+    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.15, 0.0],
+    #     num_repetitions=15,
+    # )
     # test.run(
     #     failure_chances=[0.0, 0.15],
     #     tprs=[0.0, 1.0],
