@@ -1,5 +1,6 @@
 """
-This module provides tools to summarize and plot test
+This module provides tools to summarize and plot test data of a single agent for many noise settings.
+In the plots, each noise parameter ist represented by one color component (Hue, Saturation, brightness) and the x-axis is used for the noise parameter that is not represented by a color component. This allows easy visualization of the effect of different noise settings on the performance metrics.
 
 Authors: Sebastian Jost & GPT-4 (24.10.2023)
 """
@@ -191,7 +192,7 @@ def compute_averages(grouped_data: dict) -> list:
             avg_value = sum(values) / len(values)
             min_value = min(values)
             max_value = max(values)
-            std_value = np.std(values)
+            std_value = np.std(values) if len(values) > 1 else np.nan
             averaged_run[metric] = {
                 'average': avg_value,
                 'min': min_value,

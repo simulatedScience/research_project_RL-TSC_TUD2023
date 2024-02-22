@@ -1,3 +1,9 @@
+"""
+This module provides functions to directly compare different agents on few noise levels using bar charts.
+Given a list of different noise settings and agent test logs, this module can extract and group data by agent and noise setting, and then plot the comparison charts for different metrics.
+
+Authors: Sebastian Jost & GPT-4
+"""
 import os
 
 import matplotlib.pyplot as plt
@@ -20,22 +26,18 @@ AGENT_IDENTIFIERS = {
 }
 
 def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
+    """
+    Given a noise configuration, returns a short form string representation of the configuration. This is the recommended way to represent noise configurations in legends of plots.
+
+    Args:
+        noise_config (NoiseSettings): The noise configuration to represent.
+
+    Returns:
+        str: Short form string representation of the noise configuration depending on the ABBREVIATIONS dictionary.
+    """
     return ', '.join([f"{ABBREVIATIONS[key]}={getattr(noise_config, key)}" for key in ABBREVIATIONS])
 
 
-
-def extract_experiment_name_from_file(filepath: str) -> str:
-    """
-    Extracts the experiment name from the given filepath.
-    
-    Args:
-    - filepath (str): Path to the log file.
-    
-    Returns:
-    - str: The extracted experiment name.
-    """
-    filename = os.path.basename(filepath)
-    return filename.split("_", 2)[2].rsplit(".", 1)[0]
 
 def extract_agent_metrics_data(filepaths: list[str], 
                                configs: list[NoiseSettings], 
@@ -44,12 +46,12 @@ def extract_agent_metrics_data(filepaths: list[str],
     Extracts and groups data by agent and noise setting.
     
     Args:
-    - filepaths (List[str]): List of filepaths to the log files.
-    - configs (List[namedtuple]): List of parameter configurations.
-    - metric (str): Metric to extract data for.
+        filepaths (List[str]): List of filepaths to the log files.
+        configs (List[namedtuple]): List of parameter configurations.
+        metric (str): Metric to extract data for.
     
     Returns:
-    - dict: Data grouped by agent and noise setting.
+        dict: Data grouped by agent and noise setting.
     """
     agent_data = {}
     for filepath in filepaths:
@@ -68,17 +70,16 @@ def extract_agent_metrics_data(filepaths: list[str],
             if config_tuple in configs:
                 relevant_data[config_tuple] = avg_data
         agent_data[exp_name] = relevant_data
-    
-
     # Add fixedtime data
     fixedtime_value = get_fixedtime_data()[metric]
     agent_data["fixedtime"] = fixedtime_value
 
     return agent_data
 
+
 def extract_experiment_name_from_file(filepath: str) -> str:
     """
-    Extracts the experiment name from the given log file (updated version).
+    Extracts the experiment name from the given log file.
     
     Args:
     - filepath (str): Filepath to the log file.
@@ -91,6 +92,7 @@ def extract_experiment_name_from_file(filepath: str) -> str:
         line = file.readline()
         experiment_name = line.split(":")[1].split()[0]
     return experiment_name
+
 
 def plot_agent_comparison_chart(data: dict, noise_configs: list[NoiseSettings], metric: str, fixedtime_value: float):
     cmap = plt.cm.viridis
@@ -122,18 +124,19 @@ def main():
     basepath = os.path.join(os.path.dirname("."),
                             "data", "output_data", "tsc")
     # Hardcoded file paths with experiment names and "logger" subfolder
-    filepath1 = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log"
-    filepath2 = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log"
-    filepath3 = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log"
-    
-    # list of file paths
-    filepaths = [filepath1, filepath2, filepath3]
+    filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log" # original test (wrong fpr)
+    filepath_undisturbed = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log" # original test (wrong fpr)
+    filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log" # original test (wrong fpr)
+
+    # list of file paths for different agents
+    filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
     filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
-    
+
     # Noise settings to compare
     noise_configs = [
             NoiseSettings(0.0, 1.0, 0.0),
-            NoiseSettings(0.1, 0.8, 0.15)]
+            NoiseSettings(0.1, 0.8, 0.15),
+            ]
     
     # Extract and group data, then plot the comparison charts
     throughput_data_grouped = extract_agent_metrics_data(filepaths, noise_configs, "throughput")

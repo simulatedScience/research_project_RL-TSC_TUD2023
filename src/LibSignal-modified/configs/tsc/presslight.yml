@@ -16,8 +16,6 @@ model:
   one_hot: True
   phase: True
 
-
-
 trainer:
   learning_start: 1000
   buffer_size: 5000
