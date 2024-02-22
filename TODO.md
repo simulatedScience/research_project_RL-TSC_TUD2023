@@ -35,8 +35,8 @@ Options to get more data:
     - The correctness of the simulation can be tested using `src/LibSignal_modified/tpr_test.py`
   In original version, the measured FPR was about half of the expected FPR and depended on the TPR.
 
-- **✔ Tested:** Repeat Experiments many more times to bring down standard deviation in Fig. 10  
-  Testing the model 75 instead of 15 time did not make any visible difference in the standard deviation of the travel time. Therefore, the standard deviation is likely caused by the randomness of the sensor noise and not by low sample size.
+- **✔ Tested:** More repetitions of Experiments to get more reliable results  
+  Testing the model 75 instead of 15 times for a single noise setting did not make much of a difference in the measured metrics. Given the computational cost, we will likely not increase the number of repetitions much.
 
 - **(✔) preliminary check done:** Understand & explain, why the agent trained on disturbed data performs worse on clean data than on disturbed data. (see Fig. 10 travel time chart)  
   This doesn't seem to hold true now, after the FPR correction. This behavior may have been caused by a bug in the code that's now fixed.
