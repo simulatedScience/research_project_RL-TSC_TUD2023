@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- generated on 2021-05-27 23:52:05.804645 by cutRoutes.py v1_9_1+0000-7ec6471b6c
+  options: .\cologne3.net.xml .\cologne_routes.xml -o cologne3.rou.xml <doubleminus>orig-net .\cologne.net.xml <doubleminus>big
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+	<vType id="pkw" vClass="passenger" speedDev="0.1" length="4.3" minGap="1.5"/>
+    <vehicle arrival="28133.00" depart="25200.00" id="132705_410_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 241660955#0 241660955#4 241660955#6 4045332#0"/>
+    </vehicle>
+</routes>

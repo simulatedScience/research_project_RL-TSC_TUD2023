@@ -1,4 +1,6 @@
 """
+Visualize the arrival rate of vehicles in a network from a given flow file (JSON).
+
 Author: Sebastian Jost & GPT-4 (27.10.2023)
 """
 import json

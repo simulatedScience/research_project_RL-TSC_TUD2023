@@ -49,7 +49,7 @@ def spread_flow_uniformly(flow_data, output_filepath):
 
 
 # 2. Generate a new flow file with random vehicles arriving uniformly over time with the same route distribution as the original
-def random_time_uniform_flow(flow_data, output_filepath):
+def random_time_uniform_flow(flow_data: list, output_filepath: str, total_vehicles: int = None):
     """
     Generates a new set of vehicles with uniform arrival rates, where paths are randomly selected based on their
     frequency in the original flow data.
@@ -57,15 +57,17 @@ def random_time_uniform_flow(flow_data, output_filepath):
     Args:
         flow_data (list): The loaded JSON data representing the original flow of vehicles.
         output_filepath (str): The path where the new JSON data should be saved.
+        total_vehicles (int, optional): The total number of vehicles to generate. Defaults to None (same as original flow).
     """
     # Extract routes and calculate frequencies
     all_routes = [tuple(vehicle['route']) for vehicle in flow_data]
     route_frequencies = Counter(all_routes)
     total_routes_count = sum(route_frequencies.values())
     route_probabilities = {route: count / total_routes_count for route, count in route_frequencies.items()}
-    
+
     # Calculate new start times for uniform distribution
-    total_vehicles = len(flow_data)
+    if total_vehicles is None:
+        total_vehicles = len(flow_data)
     simulation_start = min(vehicle['startTime'] for vehicle in flow_data)
     simulation_end = max(vehicle['startTime'] for vehicle in flow_data)
     simulation_duration = simulation_end - simulation_start
@@ -99,7 +101,8 @@ def create_variations(flow_file_path: str):
     """
     with open(flow_file_path, 'r') as file:
         flow_data = json.load(file)
-    flow_file_base_path = flow_file_path.rsplit('.', 1)[0]
+    # get filename from path
+    flow_file_base_path = flow_file_path[:-len(os.path.basename(flow_file_path))]
     # Generate 1st variation
     uniform_path = os.path.join(flow_file_base_path, 'autogen_uniform_flow.json')
     spread_flow_uniformly(

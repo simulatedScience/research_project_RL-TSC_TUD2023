@@ -19,6 +19,7 @@ ABBREVIATIONS = {
 
 NETWORK_CONVERTER = {
     "sumo1x3": "cologne3",
+    "sumo1x3_short": "cologne3_short",
     "sumo1x1": "cologne1",
     "atlanta1x5": "atlanta1x5",
 }

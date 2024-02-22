@@ -30,7 +30,7 @@ trainer:
   test_steps: 3600
   yellow_length: 5
   action_interval: 10 # how many simulation timesteps between actions
-  episodes: 50 # number of episodes to train for
+  episodes: 20 # number of episodes to train for
   update_model_rate: 1
   update_target_rate: 10
   test_when_train: True

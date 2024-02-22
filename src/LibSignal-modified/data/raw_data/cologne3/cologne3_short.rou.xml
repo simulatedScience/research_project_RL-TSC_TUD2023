@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- generated on 2021-05-27 23:52:05.804645 by cutRoutes.py v1_9_1+0000-7ec6471b6c
+  options: .\cologne3.net.xml .\cologne_routes.xml -o cologne3.rou.xml <doubleminus>orig-net .\cologne.net.xml <doubleminus>big
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+	<vType id="pkw" vClass="passenger" speedDev="0.1" length="4.3" minGap="1.5"/>
+    <vehicle arrival="28133.00" depart="25200.00" id="132705_410_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 241660955#0 241660955#4 241660955#6 4045332#0"/>
+    </vehicle>
+    <vehicle arrival="27907.00" depart="25201.00" id="106913_399_0" type="pkw">
+        <route edges="31864804 200818108#0 241660955#0 241660955#4 241660955#6 241660955#7 241660955#10 241660955#11 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="33326.00" depart="25202.00" id="73303_385_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 200818108#0 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="25426.00" depart="25203.00" id="113109_402_0" type="pkw">
+        <route edges="4999334 -241660955#5 -241660955#3 -200818108#1 -31864804"/>
+    </vehicle>
+    <vehicle arrival="25695.00" depart="25204.00" id="73223_384_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25344.00" depart="25206.00" id="98545_395_0" type="pkw">
+        <route edges="4045330 241660955#11 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="31172.00" depart="25207.00" id="120846_405_0" type="pkw">
+        <route edges="31864804 200818108#0 241660955#0 241660955#4 -4999334"/>
+    </vehicle>
+    <vehicle arrival="26268.00" depart="25208.00" id="122325_406_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 -31864804"/>
+    </vehicle>
+    <vehicle arrival="25781.00" depart="25211.00" id="111294_401_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="28353.00" depart="25211.00" id="163719_422_0" type="pkw">
+        <route edges="4045330 241660955#11 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="30651.00" depart="25211.00" id="160296_421_0" type="pkw">
+        <route edges="241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="25389.00" depart="25212.00" id="132667_410_0" type="pkw">
+        <route edges="-31800061#0 241660955#4 -4999334"/>
+    </vehicle>
+    <vehicle arrival="25355.00" depart="25213.00" id="132022_410_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="31568.00" depart="25213.00" id="118698_405_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="27221.00" depart="25215.00" id="169266_425_0" type="pkw">
+        <route edges="-31864804 31864804 200818108#0 241660955#0 241660955#4 241660955#6 241660955#7 241660955#10 241660955#11 241660955#13 241660955#14 -241660955#16 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="27785.00" depart="25215.00" id="79538_387_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25445.00" depart="25216.00" id="141383_415_0" type="pkw">
+        <route edges="41910184 241660955#13 4145589#0"/>
+    </vehicle>
+    <vehicle arrival="25585.00" depart="25223.00" id="131963_410_0" type="pkw">
+        <route edges="-31800061#0 241660955#4 -4999334"/>
+    </vehicle>
+    <vehicle arrival="25589.00" depart="25225.00" id="161160_421_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="26770.00" depart="25226.00" id="173797_427_0" type="pkw">
+        <route edges="-41910186 41910186 -241660955#3 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="26801.00" depart="25227.00" id="153968_420_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 -31864804"/>
+    </vehicle>
+    <vehicle arrival="25691.00" depart="25228.00" id="169122_425_0" type="pkw">
+        <route edges="-4999334"/>
+    </vehicle>
+    <vehicle arrival="30077.00" depart="25228.00" id="83081_390_0" type="pkw">
+        <route edges="31864804 200818108#0 241660955#0 241660955#4 241660955#6 -241660955#6 -4999334"/>
+    </vehicle>
+    <vehicle arrival="25452.00" depart="25229.00" id="68266_381_0" type="pkw">
+        <route edges="4045329#5 41910185#0"/>
+    </vehicle>
+    <vehicle arrival="27379.00" depart="25229.00" id="157649_421_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 -31864804"/>
+    </vehicle>
+    <vehicle arrival="27748.00" depart="25229.00" id="148720_417_0" type="pkw">
+        <route edges="31864804 200818108#0 241660955#0 241660955#4 241660955#6 241660955#7 241660955#10 241660955#11 -41910184"/>
+    </vehicle>
+    <vehicle arrival="25428.00" depart="25231.00" id="81370_389_0" type="pkw">
+        <route edges="4045329#5 241660955#10 -4045330"/>
+    </vehicle>
+    <vehicle arrival="27120.00" depart="25231.00" id="140878_414_0" type="pkw">
+        <route edges="-130160207#0 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="31520.00" depart="25232.00" id="174028_427_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 200818108#0 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="26342.00" depart="25233.00" id="100929_396_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="27449.00" depart="25233.00" id="141513_415_0" type="pkw">
+        <route edges="4999334 -241660955#5 -241660955#3 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="26399.00" depart="25235.00" id="149066_417_0" type="pkw">
+        <route edges="31864804 200818108#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="28551.00" depart="25235.00" id="134770_411_0" type="pkw">
+        <route edges="-31800061#0 241660955#4 241660955#6 241660955#7 241660955#10 241660955#11 -41910184"/>
+    </vehicle>
+    <vehicle arrival="30883.00" depart="25236.00" id="163598_422_0" type="pkw">
+        <route edges="-130160207#0 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="25698.00" depart="25237.00" id="118681_405_0" type="pkw">
+        <route edges="4999334 -241660955#5 -241660955#3 -200818108#1 -31864804"/>
+    </vehicle>
+    <vehicle arrival="26021.00" depart="25240.00" id="166826_424_0" type="pkw">
+        <route edges="41910184 241660955#13 4145589#0"/>
+    </vehicle>
+    <vehicle arrival="30088.00" depart="25240.00" id="153704_420_0" type="pkw">
+        <route edges="-31800061#0 241660955#4 241660955#6 241660955#7 241660955#10 241660955#11 -41910184"/>
+    </vehicle>
+    <vehicle arrival="25408.00" depart="25242.00" id="85241_390_0" type="pkw">
+        <route edges="41910184 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="25566.00" depart="25244.00" id="161841_421_0" type="pkw">
+        <route edges="31864804 200818108#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25757.00" depart="25244.00" id="140163_414_0" type="pkw">
+        <route edges="241660955#13 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="32289.00" depart="25248.00" id="137478_412_0" type="pkw">
+        <route edges="4045330 241660955#11 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="26032.00" depart="25249.00" id="150954_418_0" type="pkw">
+        <route edges="-130160207#0 -241660955#16 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="28669.00" depart="25249.00" id="125978_406_0" type="pkw">
+        <route edges="-5229966#3 319261593#15 319261593#16 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="26522.00" depart="25251.00" id="111993_401_0" type="pkw">
+        <route edges="4045329#5 41910185#0"/>
+    </vehicle>
+    <vehicle arrival="26670.00" depart="25253.00" id="160813_421_0" type="pkw">
+        <route edges="41910184 241660955#13 4145589#0"/>
+    </vehicle>
+    <vehicle arrival="28969.00" depart="25253.00" id="163366_422_0" type="pkw">
+        <route edges="-130160207#0 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="26990.00" depart="25255.00" id="158876_421_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 -31864804"/>
+    </vehicle>
+    <vehicle arrival="27199.00" depart="25256.00" id="155750_420_0" type="pkw">
+        <route edges="-130160207#0 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="25391.00" depart="25260.00" id="123109_406_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25556.00" depart="25260.00" id="100301_396_0" type="pkw">
+        <route edges="-241660955#17 130160207#0"/>
+    </vehicle>
+    <vehicle arrival="25836.00" depart="25260.00" id="131925_410_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 200818108#0 241660955#0 -41910186"/>
+    </vehicle>
+    <vehicle arrival="25698.00" depart="25262.00" id="126562_407_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="34569.00" depart="25263.00" id="161578_421_0" type="pkw">
+        <route edges="-4999334"/>
+    </vehicle>
+    <vehicle arrival="25844.00" depart="25264.00" id="163790_422_0" type="pkw">
+        <route edges="-130160207#0 130160207#0"/>
+    </vehicle>
+    <vehicle arrival="25418.00" depart="25266.00" id="168647_425_0" type="pkw">
+        <route edges="-4999334"/>
+    </vehicle>
+    <vehicle arrival="25688.00" depart="25267.00" id="165473_423_0" type="pkw">
+        <route edges="41910186 -241660955#3 -200818108#1 -31864804"/>
+    </vehicle>
+    <vehicle arrival="27592.00" depart="25269.00" id="157767_421_0" type="pkw">
+        <route edges="31864804 200818108#0 241660955#0 -41910186"/>
+    </vehicle>
+    <vehicle arrival="26375.00" depart="25270.00" id="153005_419_0" type="pkw">
+        <route edges="41910184 241660955#13 4145589#0"/>
+    </vehicle>
+    <vehicle arrival="32139.00" depart="25270.00" id="100843_396_0" type="pkw">
+        <route edges="319261593#12 319261593#15 8197886#0 200818108#0 4145590#0"/>
+    </vehicle>
+    <vehicle arrival="28200.00" depart="25274.00" id="149951_417_0" type="pkw">
+        <route edges="-130160207#0 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="26702.00" depart="25275.00" id="76573_386_0" type="pkw">
+        <route edges="-241660955#17 130160207#0"/>
+    </vehicle>
+    <vehicle arrival="31323.00" depart="25275.00" id="173932_427_0" type="pkw">
+        <route edges="-41910185#2 241660955#10 241660955#11 241660955#13 241660955#14 241660955#17"/>
+    </vehicle>
+    <vehicle arrival="25801.00" depart="25276.00" id="71667_383_0" type="pkw">
+        <route edges="241660957#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="27712.00" depart="25276.00" id="150860_418_0" type="pkw">
+        <route edges="31864804 200818108#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25644.00" depart="25279.00" id="149148_417_0" type="pkw">
+        <route edges="-130160207#0 -241660955#16 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="25548.00" depart="25281.00" id="168091_425_0" type="pkw">
+        <route edges="-130160207#0 -241660955#16 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="25682.00" depart="25284.00" id="139107_413_0" type="pkw">
+        <route edges="-130160207#0 -241660955#16 -241660955#13 -41910184"/>
+    </vehicle>
+    <vehicle arrival="27062.00" depart="25285.00" id="164227_422_0" type="pkw">
+        <route edges="4999334 -241660955#5 -241660955#3 -200818108#1 -31864804"/>
+    </vehicle>
+    <vehicle arrival="27207.00" depart="25285.00" id="172020_426_0" type="pkw">
+        <route edges="31864804 200818108#0 4999331#0"/>
+    </vehicle>
+    <vehicle arrival="25330.00" depart="25286.00" id="104671_398_0" type="pkw">
+        <route edges="-41910185#2 241660955#10 241660955#11"/>
+    </vehicle>
+</routes>

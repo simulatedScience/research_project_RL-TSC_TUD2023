@@ -126,7 +126,10 @@ def main():
     # Hardcoded file paths with experiment names and "logger" subfolder
     filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log" # original test (wrong fpr)
     filepath_undisturbed = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log" # original test (wrong fpr)
-    filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log" # original test (wrong fpr)
+    # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log" # original test (wrong fpr)
+    # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2024_02_22-14_06_34_BRF_75reps.log" # default data, 75reps
+    # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2024_02_22-14_45_09_BRF_random_uniform_10reps.log" # random uniform data, 10reps
+    filepath_disturbed = r"sumo_presslight\sumo1x3_short\exp_9_disturbed_100\logger\2024_02_22-15_13_13_BRF.log" # random uniform data, 10reps
 
     # list of file paths for different agents
     filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
@@ -134,7 +137,7 @@ def main():
 
     # Noise settings to compare
     noise_configs = [
-            NoiseSettings(0.0, 1.0, 0.0),
+            # NoiseSettings(0.0, 1.0, 0.0),
             NoiseSettings(0.1, 0.8, 0.15),
             ]
     

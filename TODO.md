@@ -13,18 +13,20 @@
   Target network is updated every `update_target_rate` steps by copying the actor's weights.  
   Is DDQN still a good enough choice of algorithm in 2024? It's very simple and easy to implement.
 
-- Verify that training and test dataset are different. Repeat experiments if not.
+- **✔ Done:** Verify that training and test dataset are different. Repeat experiments if not.
 Options to get more data:
     - Train on synthetic data with different arrival rates, test on real data
     - reverse time and/or destinations of first dataset for more diverse data
+
+  **Results:**  
+  By shortening the flow file to the first 140 instead of all ~2700 vehicles, both the training and testing was significantly faster. Therefore we conclude, that the agents are trained and tested on the same data. However, after training an agent on the small dataset and testing it on the full dataset, the agent performed almost identically. This indicates that the dataset is diverse enough to train on without overfitting. The agent also does not get any time information as input, so learning a perfect sequence of actions specific to this dataset is not possible.
+
+  Testing the extreme: training on a dataset with just one vehicle and testing on the full dataset. Does indeed result in extremely poor performance as the network learns to always give green to the same direction. This is of course not a good policy for the full dataset.
   
   **Notes:**  
   Vehicles are added into the simulation in `world/world_sumo_disturbed.py` `ln. 532` based on a sumo config.
-  Upon initialisation, the class `World` generates a terminal command used to start SUMO. This contains info like the road network file and the route/ flow file. (See `ln. 370` in `world/world_sumo_disturbed.py`) Which files are loaded is determined by the sumo config file found in `configs/sim` (e.g. `sumo1x3.cfg`). This config is loaded (JSON format) to get the relevant file paths.  
-  During training, the environment is reset for each episode in `tsc_trainer.train()` (see `self.env.reset()`). This does not indicate any switch of datasets between training and testing. Neither does the similar reset in `tsc_trainer.train_test()`.
-
-
-- Write instructions for how to reproduce the experiments, add `requirements.txt` etc.
+  Upon initialisation, the class `World` generates a terminal command used to start SUMO. This contains info like the road network file and the route/ flow file. (See `ln. 370` in `world/world_sumo_disturbed.py`) Which files are loaded is determined by the sumo config file found in `configs/sim` (e.g. `sumo1x3.cfg`). This config is loaded to get the relevant file paths. Specifically, the simulation loads the combined file (`.sumoconfig`), which then specifies the sumo `.xml` files for network and routes/ flow data.  
+  During training, the environment is reset for each episode in `tsc_trainer.train()` (see `self.env.reset()`). This does not indicate any switch of datasets between training and testing. Neither does the similar reset in `tsc_trainer.train_test()`. Training and testing with different (shortened) datasets showed clearly that training and testing are, by default, done on the same data.
 
 - **✔ CORRECTED:** Verify that the TPR and FPR measured in the simulation are the same as the values that are set.
     - Measure TPR & FPR in simulation to verify that a given setting leads to the expected results
@@ -33,11 +35,15 @@ Options to get more data:
     - The correctness of the simulation can be tested using `src/LibSignal_modified/tpr_test.py`
   In original version, the measured FPR was about half of the expected FPR and depended on the TPR.
 
+- **✔ Tested:** Repeat Experiments many more times to bring down standard deviation in Fig. 10  
+  Testing the model 75 instead of 15 time did not make any visible difference in the standard deviation of the travel time. Therefore, the standard deviation is likely caused by the randomness of the sensor noise and not by low sample size.
+
+- **(✔) preliminary check done:** Understand & explain, why the agent trained on disturbed data performs worse on clean data than on disturbed data. (see Fig. 10 travel time chart)  
+  This doesn't seem to hold true now, after the FPR correction. This behavior may have been caused by a bug in the code that's now fixed.
+
+- Write instructions for how to reproduce the experiments, add `requirements.txt` etc.
+
 - Verify results in a second environment (road network)
-
-- Repeat Experiments many more times to bring down standard deviation in Fig. 10 
-
-- Understand & explain, why the agent trained on disturbed data performs worse on clean data than on disturbed data. (see Fig. 10 travel time chart)
 
 - Test more different agents (FRAP, CoLight)
 
