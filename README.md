@@ -14,7 +14,17 @@ We plan to implement Reinforcement Learning algorithms for Traffic Signal Contro
 
 ## Installation
 
+1. Clone this repository from [GitHub](https://github.com/simulatedScience/research_project_RL-TSC_TUD2023)
+2. Install SUMO (Simulation of Urban MObility) from [sumo.dlr.de](https://sumo.dlr.de/docs/Downloads.html)
+3. Install python libraries using `pip install -r src/LibSignal-modified/requirements.txt`  
+   (You may need to explicitly specifiy the target path when using a virtual environment, e.g. `pip install -t .venv/Lib/site-packages -r src/LibSignal-modified/requirements.txt`)
+4. Install pytorch for your system from [pytorch.org](https://pytorch.org/get-started/locally/)  
+   (You may need to install a different version of pytorch depending on your system and CUDA version. TO enable GPU support, you need to have a compatible GPU and [CUDA](https://developer.nvidia.com/cuda-zone) installed. At time of testing, the recommended version is [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64))
+
+
 ## Running the code
+
+The relevant code can be found in `src/LibSignal-modified`.
 
 ### Training
 1. find the files `configs/tsc/base.yml` and the one corresponding to the agent you want to train (e.g. `configs/tsc/presslight.yml`)
@@ -34,3 +44,9 @@ We plan to implement Reinforcement Learning algorithms for Traffic Signal Contro
 3. set both `load_model` and `test_model` to `True` in the agent's config
 4. continue with steps 4-6 from the training section. The program will automatically find the latest model in the given experiment to test with.  
    Note, that you can test with different sensor failure rates than you trained with. Passing lists of sensor failure rates will test all possible combinations of them (kartesian product).  
+
+### Parameters used in paper
+For training the model on noisy data, we used the following parameters:
+- sensor failure rate (`failre_chance`): 0.1
+- true positive rate (`tpr`): 0.8
+- false positive rate (`fpr`): 0.15

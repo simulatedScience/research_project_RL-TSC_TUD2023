@@ -10,6 +10,8 @@ import time
 from datetime import datetime
 import argparse
 
+
+
 def parse_args():
     # parseargs
     parser = argparse.ArgumentParser(description='Run Experiment')
@@ -138,7 +140,7 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 14, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp2_1_disturbed_50", # exp_5_undisturbed_100
+        prefix = "exp2_1_disturbed_20", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
@@ -155,11 +157,11 @@ if __name__ == '__main__':
         fpr = 0.0, # false positive rate,
     )
     test = Runner(args)
-    # train with high sensor failure rate
+    # train with moderate sensor failure rate
     test.run(
         failure_chances=[0.1],
         tprs=[0.8],
-        fprs=[0.3],
+        fprs=[0.15],
         num_repetitions=1,
     )
     # train without sensor failures

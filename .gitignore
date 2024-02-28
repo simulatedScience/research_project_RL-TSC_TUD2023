@@ -22,4 +22,6 @@ presentation/*
 misc/*
 latex-template-cgv/*
 src/gym_intro/*
+.venv
+# includsions of otherwise ignored files
 !presentation/RL TSC presentation_SJ_TUD2023.pdf
