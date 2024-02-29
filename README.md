@@ -1,6 +1,6 @@
 # Research Project: Reinforcement Learning for Traffic Signal Control (@TUD 2023)
 
-This repository contains work for a reasearch project by Sebastian Jost at TU-Dresden in 2023.
+This repository contains work for a research project by Sebastian Jost at TU-Dresden in 2023.
 
 ## Repository structure
 There are some miscellaneous files in the root directory for now, those will be moved to a more appropriate location when the project progresses.
