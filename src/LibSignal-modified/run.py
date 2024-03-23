@@ -108,10 +108,57 @@ class Runner:
                             f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
                             f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
                         )
+                        # save training info into a md file
+                        self.save_run_info()
                         start_time = time.time()
                         self.task.run(drop_load = not first_model)
                         logger.info(f"Total time taken: {time.time() - start_time}")
                         first_model = False
+        self.save_run_info()
+
+    def save_run_info(self):
+        """
+        Save run info into a md file. Info to save is loaded from config files registered in Registry class
+        """
+        # load simulator config file
+        sumo_config: str = os.path.join('configs/sim', Registry.mapping['command_mapping']['setting'].param['network'] + '.cfg')
+        with open(sumo_config) as file:
+            sumo_dict = json.load(file)
+        dataset: str = sumo_dict['combined_file'] # dataset file path
+        # load agent config
+        dic_agent_conf: dict[str, int] = Registry.mapping['model_mapping']['setting']
+        layer_size: int = dic_agent_conf.param['d_dense']
+        
+        run_info = {
+            'agent_type': Registry.mapping['command_mapping']['setting'].param['agent'],
+            'road_network': Registry.mapping['command_mapping']['setting'].param['network'],
+            'dataset': dataset,
+            'n_epsiodes': Registry.mapping['trainer_mapping']['setting'].param['episodes'],
+            'layers': layer_size, # single dense hidden layer size
+            'failure_chance': Registry.mapping['command_mapping']['setting'].param['failure_chance'],
+            'tpr': Registry.mapping['command_mapping']['setting'].param['tpr'],
+            'fpr': Registry.mapping['command_mapping']['setting'].param['fpr'],
+            'seed': Registry.mapping['command_mapping']['setting'].param['seed'],
+        }
+        run_info_text = f"""
+- training started at: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`
+- trained on data: `{run_info['dataset']}`
+- trained `{run_info['n_epsiodes']}` episodes
+- independent DQN per intersection with layers: `{run_info['layers']}`
+- sensor failure simulation updated Feb 2024
+- failure chance: `{run_info['failure_chance']}`
+- TPR: `{run_info['tpr']}`
+- FPR: `{run_info['fpr']}`
+- random seed: `{run_info['seed']}`
+"""
+        # experiment folder
+        exp_folder = Registry.mapping['logger_mapping']['path'].path
+        os.makedirs(exp_folder, exist_ok=True)
+        info_file_path = os.path.join(exp_folder, 'run_info.md')
+        with open(info_file_path, 'w') as file:
+            file.write(run_info_text)
+        print(f"Run info saved at: {info_file_path}")
+
 
 
 if __name__ == '__main__':
@@ -140,7 +187,7 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 14, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp2_1_disturbed_20", # exp_5_undisturbed_100
+        prefix = "exp3_0_disturbed_10", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
