@@ -109,38 +109,40 @@ class Runner:
                             f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
                         )
                         # save training info into a md file
-                        self.save_run_info()
+                        save_run_info()
                         start_time = time.time()
                         self.task.run(drop_load = not first_model)
                         logger.info(f"Total time taken: {time.time() - start_time}")
                         first_model = False
-        self.save_run_info()
 
-    def save_run_info(self):
-        """
-        Save run info into a md file. Info to save is loaded from config files registered in Registry class
-        """
-        # load simulator config file
-        sumo_config: str = os.path.join('configs/sim', Registry.mapping['command_mapping']['setting'].param['network'] + '.cfg')
-        with open(sumo_config) as file:
-            sumo_dict = json.load(file)
-        dataset: str = sumo_dict['combined_file'] # dataset file path
-        # load agent config
-        dic_agent_conf: dict[str, int] = Registry.mapping['model_mapping']['setting']
+def save_run_info():
+    """
+    Save run info into a md file. Info to save is loaded from config files registered in Registry class
+    """
+    # load simulator config file
+    sumo_config: str = os.path.join('configs/sim', Registry.mapping['command_mapping']['setting'].param['network'] + '.cfg')
+    with open(sumo_config) as file:
+        sumo_dict = json.load(file)
+    dataset: str = sumo_dict['combined_file'] # dataset file path
+    # load agent config
+    dic_agent_conf: dict[str, int] = Registry.mapping['model_mapping']['setting']
+    try:
         layer_size: int = dic_agent_conf.param['d_dense']
-        
-        run_info = {
-            'agent_type': Registry.mapping['command_mapping']['setting'].param['agent'],
-            'road_network': Registry.mapping['command_mapping']['setting'].param['network'],
-            'dataset': dataset,
-            'n_epsiodes': Registry.mapping['trainer_mapping']['setting'].param['episodes'],
-            'layers': layer_size, # single dense hidden layer size
-            'failure_chance': Registry.mapping['command_mapping']['setting'].param['failure_chance'],
-            'tpr': Registry.mapping['command_mapping']['setting'].param['tpr'],
-            'fpr': Registry.mapping['command_mapping']['setting'].param['fpr'],
-            'seed': Registry.mapping['command_mapping']['setting'].param['seed'],
-        }
-        run_info_text = f"""
+    except KeyError:
+        layer_size: int = None
+    
+    run_info = {
+        'agent_type': Registry.mapping['command_mapping']['setting'].param['agent'],
+        'road_network': Registry.mapping['command_mapping']['setting'].param['network'],
+        'dataset': dataset,
+        'n_epsiodes': Registry.mapping['trainer_mapping']['setting'].param['episodes'],
+        'layers': layer_size, # single dense hidden layer size
+        'failure_chance': Registry.mapping['command_mapping']['setting'].param['failure_chance'],
+        'tpr': Registry.mapping['command_mapping']['setting'].param['tpr'],
+        'fpr': Registry.mapping['command_mapping']['setting'].param['fpr'],
+        'seed': Registry.mapping['command_mapping']['setting'].param['seed'],
+    }
+    run_info_text = f"""
 - training started at: `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`
 - trained on data: `{run_info['dataset']}`
 - trained `{run_info['n_epsiodes']}` episodes
@@ -151,13 +153,14 @@ class Runner:
 - FPR: `{run_info['fpr']}`
 - random seed: `{run_info['seed']}`
 """
-        # experiment folder
-        exp_folder = Registry.mapping['logger_mapping']['path'].path
-        os.makedirs(exp_folder, exist_ok=True)
-        info_file_path = os.path.join(exp_folder, 'run_info.md')
-        with open(info_file_path, 'w') as file:
-            file.write(run_info_text)
-        print(f"Run info saved at: {info_file_path}")
+    # experiment folder
+    file_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    exp_folder = Registry.mapping['logger_mapping']['path'].path
+    os.makedirs(exp_folder, exist_ok=True)
+    info_file_path = os.path.join(exp_folder, f'{file_datetime}_run_info.md')
+    with open(info_file_path, 'w') as file:
+        file.write(run_info_text)
+    print(f"Run info saved at: {info_file_path}")
 
 
 
@@ -187,7 +190,7 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 14, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp3_0_disturbed_10", # exp_5_undisturbed_100
+        prefix = "exp3_1_undisturbed_100", # exp_5_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
@@ -205,19 +208,19 @@ if __name__ == '__main__':
     )
     test = Runner(args)
     # train with moderate sensor failure rate
-    test.run(
-        failure_chances=[0.1],
-        tprs=[0.8],
-        fprs=[0.15],
-        num_repetitions=1,
-    )
-    # train without sensor failures
     # test.run(
-    #     failure_chances=[0.0],
-    #     tprs=[1.0],
-    #     fprs=[0.0],
+    #     failure_chances=[0.1],
+    #     tprs=[0.8],
+    #     fprs=[0.15],
     #     num_repetitions=1,
     # )
+    # train without sensor failures
+    test.run(
+        failure_chances=[0.0],
+        tprs=[1.0],
+        fprs=[0.0],
+        num_repetitions=1,
+    )
     # test with several real-world sensor failure rates
     # test.run(
     #     failure_chances=[0.15, 0.1, 0.05, 0.0],

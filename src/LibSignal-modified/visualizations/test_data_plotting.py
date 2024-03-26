@@ -158,7 +158,7 @@ def plot_averaged_data_with_range(
     if y_lim is not None:
         plt.ylim(*y_lim)
     plt.title(f'{y_param_text} vs {x_param_text}\n{exp_subtitle}')
-    plt.legend(reordered_lines, reordered_labels, loc='best', ncol=4)
+    plt.legend(reordered_lines, reordered_labels, loc='best', ncol=num_cols)
     plt.grid(color="#dddddd")
     plt.tight_layout()
     # try to create plots folder
@@ -316,15 +316,15 @@ def main():
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max=min_max)
-    plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max=min_max)
+    # plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max=min_max)
     plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
     plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
     plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue', exp_path, min_max=min_max)
-    plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max=min_max)
+    # plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max=min_max)
     plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
     plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
     plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue', exp_path, min_max=min_max)
-    plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max=min_max)
+    # plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max=min_max)
     
 if __name__ == '__main__':
     main()

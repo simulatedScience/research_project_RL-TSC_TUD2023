@@ -20,9 +20,9 @@ ABBREVIATIONS = {
 }
 # Define the agent identifiers based on experiment names
 AGENT_IDENTIFIERS = {
-    "exp_2_maxpressure": "maxpressure",
-    "exp_8_undisturbed_50": "undisturbed",
-    "exp_9_disturbed_100": "disturbed",
+    "exp3_1_maxpressure": "maxpressure",
+    "exp3_1_undisturbed_100": "undisturbed",
+    "exp3_1_disturbed_100": "disturbed",
 }
 
 def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
@@ -124,13 +124,16 @@ def main():
     basepath = os.path.join(os.path.dirname("."),
                             "data", "output_data", "tsc")
     # Hardcoded file paths with experiment names and "logger" subfolder
-    filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log" # original test (wrong fpr)
-    filepath_undisturbed = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log" # original test (wrong fpr)
+    # filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp_2_maxpressure\logger\2023_10_29-01_05_35_BRF.log" # original test (wrong fpr)
+    # filepath_undisturbed = r"sumo_presslight\sumo1x3\exp_8_undisturbed_50\logger\2023_10_29-13_41_15_BRF_joined.log" # original test (wrong fpr)
     # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2023_10_30-00_25_30_BRF_joined.log" # original test (wrong fpr)
     # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2024_02_22-14_06_34_BRF_75reps.log" # default data, 75reps
     # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2024_02_22-14_45_09_BRF_random_uniform_10reps.log" # random uniform data, 10reps
-    filepath_disturbed = r"sumo_presslight\sumo1x3_short\exp_9_disturbed_100\logger\2024_02_22-15_13_13_BRF.log" # random uniform data, 10reps
-
+    # filepath_disturbed = r"sumo_presslight\sumo1x3_short\exp_9_disturbed_100\logger\2024_02_22-15_13_13_BRF.log" # random uniform data, 10reps
+    # new experiments 2024_03_25
+    filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp3_1_maxpressure\logger\2024_03_25-20_19_58_BRF.log"
+    filepath_undisturbed = r"sumo_presslight\sumo1x3\exp3_1_undisturbed_100\logger\2024_03_25-16_18_14_BRF.log"
+    filepath_disturbed = r"sumo_presslight\sumo1x3\exp3_1_disturbed_100\logger\2024_03_25-12_05_35_BRF.log"
     # list of file paths for different agents
     filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
     filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
