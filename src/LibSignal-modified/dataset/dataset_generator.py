@@ -119,7 +119,7 @@ def create_variations(flow_file_path: str):
     print(f"Saved random uniform flow data to {random_uniform_path}")
 
 
-def sin_schedule_fab(
+def sine_schedule_fab(
         period: float = 3600,
         amplitude: float = 200,
         mean: float = 200,
@@ -140,7 +140,17 @@ def sin_schedule_fab(
         Callable: A function f(t, dt=1) that returns the arrival rate at time t and time step dt.
         
     """
-    def f(t: float, dt: float = 1) -> int:
+    def sine_arrival_schedule(t: float, dt: float = 1) -> int:
+        """
+        Generate the number of new vehicles arriving at time t with time step dt.
+
+        Args:
+            t (float): time in seconds.
+            dt (float, optional): time step in seconds. Defaults to 1.
+
+        Returns:
+            int: the number of new vehicles arriving at time t.
+        """
         arrival_rate: float = \
             mean + amplitude * np.sin(2 * np.pi * t / period + phase)
         if clamp:
@@ -149,7 +159,7 @@ def sin_schedule_fab(
         # generate new vehicles with poisson distribution
         new_vehicle_count: int = np.random.poisson(expected_new_vehicles)
         return new_vehicle_count
-    return f
+    return sine_arrival_schedule
 
 
 if __name__ == "__main__":
