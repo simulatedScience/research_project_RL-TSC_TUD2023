@@ -23,6 +23,7 @@ AGENT_IDENTIFIERS = {
     "exp3_1_maxpressure": "maxpressure",
     "exp3_1_undisturbed_100": "undisturbed",
     "exp3_1_disturbed_100": "disturbed",
+    "exp3_3_disturbed_100": "disturbed",
 }
 
 def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
@@ -133,14 +134,14 @@ def main():
     # new experiments 2024_03_25
     filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp3_1_maxpressure\logger\2024_03_25-20_19_58_BRF.log"
     filepath_undisturbed = r"sumo_presslight\sumo1x3\exp3_1_undisturbed_100\logger\2024_03_25-16_18_14_BRF.log"
-    filepath_disturbed = r"sumo_presslight\sumo1x3\exp3_1_disturbed_100\logger\2024_03_25-12_05_35_BRF.log"
+    filepath_disturbed = r"sumo_presslight\sumo1x3\exp3_3_disturbed_100\logger\2024_04_11-14_39_25_BRF.log"
     # list of file paths for different agents
     filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
     filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
 
     # Noise settings to compare
     noise_configs = [
-            # NoiseSettings(0.0, 1.0, 0.0),
+            NoiseSettings(0.0, 1.0, 0.0),
             NoiseSettings(0.1, 0.8, 0.15),
             ]
     

@@ -190,7 +190,7 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 14, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp3_1_undisturbed_100", # exp_5_undisturbed_100
+        prefix = "exp3_3_disturbed_100", # exp3_2_undisturbed_100
         seed = 5,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
@@ -202,25 +202,25 @@ if __name__ == '__main__':
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
         
-        failure_chance = 0.0, # failure_chance,
-        tpr = 1.0, # true positive rate,
-        fpr = 0.0, # false positive rate,
+        failure_chance = 0.1, # failure_chance,
+        tpr = 0.8, # true positive rate,
+        fpr = 0.15, # false positive rate,
     )
     test = Runner(args)
     # train with moderate sensor failure rate
-    # test.run(
-    #     failure_chances=[0.1],
-    #     tprs=[0.8],
-    #     fprs=[0.15],
-    #     num_repetitions=1,
-    # )
-    # train without sensor failures
     test.run(
-        failure_chances=[0.0],
-        tprs=[1.0],
-        fprs=[0.0],
+        failure_chances=[0.1],
+        tprs=[0.8],
+        fprs=[0.15],
         num_repetitions=1,
     )
+    # train without sensor failures
+    # test.run(
+    #     failure_chances=[0.0],
+    #     tprs=[1.0],
+    #     fprs=[0.0],
+    #     num_repetitions=1,
+    # )
     # test with several real-world sensor failure rates
     # test.run(
     #     failure_chances=[0.15, 0.1, 0.05, 0.0],

@@ -311,8 +311,8 @@ def main():
     min_max = None
     exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
     # plot averaged data with ranges
-    ylim_travel_time = (60, 200)
-    ylim_throughput = (2400, 2900)
+    ylim_travel_time = (60, 280)
+    ylim_throughput = (1800, 2900)
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
     plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max=min_max)
