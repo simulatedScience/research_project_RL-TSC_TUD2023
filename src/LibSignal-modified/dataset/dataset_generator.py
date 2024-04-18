@@ -268,6 +268,7 @@ def same_distribution_vehicle_fab_xml(routes_data: list[dict[str, str]]) -> Call
         selected_route_str = random.choices(list(route_probabilities.keys()), weights=route_probabilities.values(), k=1)[0]
         return {
             "depart": str(depart_time),
+            # "arrival": str(depart_time + 30), # Assuming a fixed travel duration of 30 seconds
             "id": str(random.randint(1, 1e8)),
             "type": type,
             "route": selected_route_str,
@@ -366,13 +367,13 @@ if __name__ == "__main__":
     routes_base_name = os.path.basename(routes_file_path)
     routes_base_path = routes_file_path[:-len(routes_base_name)]
     routes_base_name = routes_base_name.strip(".rou.xml")
-    output_path: str = routes_base_path + routes_base_name + "_synthetic_sine.rou.xml"
+    output_path: str = routes_base_path + routes_base_name + "_synthetic_const.rou.xml"
     create_variation_xml(
             routes_file_path,
             output_path,
             departure_max_time=3600,
             departure_interval=1,
-            schedule_type="sine",
+            schedule_type="const",
             vehicle_distribution="same",
             )
     print(f"Saved synthetic data to {output_path}")
