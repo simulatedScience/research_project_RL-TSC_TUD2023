@@ -76,44 +76,33 @@ class Runner:
 
     def run(self,
             filename_addon: str = "",
-            failure_chances: list = [0.0],
-            tprs: list = [0.0],
-            fprs: list = [0.15],
-            min_rep: int = 0,
-            num_repetitions: int = 1,
             ):
         logging_level = logging.INFO
         if args.debug:
             logging_level = logging.DEBUG
-            
+
         logger = setup_logging(logging_level, filename_addon=filename_addon)
-        
+
         self.trainer = Registry.mapping['trainer_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](logger)
         self.task = Registry.mapping['task_mapping']\
             [Registry.mapping['command_mapping']['setting'].param['task']](self.trainer)
-        
-        for tpr in tprs:
-            for fpr in fprs:
-                for failure_chance in failure_chances:
-                    first_model = True
-                    for run_id in range(min_rep, num_repetitions):
-                        Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
-                        Registry.mapping['command_mapping']['setting'].param['tpr'] = tpr
-                        Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
-                        Registry.mapping['command_mapping']['setting'].param['seed'] = run_id
-                        self.trainer.load_seed_from_config()
-                        run_identifier = f"id={run_id}_fc={failure_chance}_tpr={tpr}_fpr={fpr}"
-                        logger.info(
-                            f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
-                            f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
-                        )
-                        # save training info into a md file
-                        save_run_info()
-                        start_time = time.time()
-                        self.task.run(drop_load = not first_model)
-                        logger.info(f"Total time taken: {time.time() - start_time}")
-                        first_model = False
+
+        failure_chance = Registry.mapping['command_mapping']['setting'].param['failure_chance']
+        tpr = Registry.mapping['command_mapping']['setting'].param['tpr']
+        fpr = Registry.mapping['command_mapping']['setting'].param['fpr']
+        run_id = Registry.mapping['command_mapping']['setting'].param['seed']
+        self.trainer.load_seed_from_config()
+        run_identifier = f"id={run_id}_fc={failure_chance}_tpr={tpr}_fpr={fpr}"
+        logger.info(
+            f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
+            f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
+        )
+        # save training info into a md file
+        save_run_info()
+        start_time = time.time()
+        self.task.run(drop_load=False)
+        logger.info(f"Total time taken: {time.time() - start_time}")
 
 def save_run_info():
     """
@@ -190,8 +179,8 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 14, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp3_3_disturbed_100", # exp3_2_undisturbed_100
-        seed = 5,
+        prefix = "exp4_0_disturbed_synth_100", # exp3_2_undisturbed_100
+        seed = 50,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
         delay_type = "apx", # approximated delay
@@ -208,12 +197,7 @@ if __name__ == '__main__':
     )
     test = Runner(args)
     # train with moderate sensor failure rate
-    test.run(
-        failure_chances=[0.1],
-        tprs=[0.8],
-        fprs=[0.15],
-        num_repetitions=1,
-    )
+    test.run()
     # train without sensor failures
     # test.run(
     #     failure_chances=[0.0],
