@@ -55,7 +55,6 @@ def plot_centered_arrival_rate(data, window_length_seconds):
     plt.show()
 
 if __name__ == "__main__":
-
     import tkinter as tk
     from tkinter import filedialog
     tk.Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
