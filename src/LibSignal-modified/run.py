@@ -170,16 +170,11 @@ if __name__ == '__main__':
     #     network = "sumo1x1",
     #     dataset = "onfly",
     # )
-    # num_repetitions = 20
-    # for tpr in [0.0, 1.0]:
-    #     for fpr in [0.15]:
-    #         for failure_chance in [0.0, 0.05, 0.1, 0.15]:
-    #             for run_id in range(num_repetitions):
     args = parse_args()
     args = argparse.Namespace(
-        thread_num = 14, # use 8 CPU threads
+        thread_num = 22, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp4_0_disturbed_synth_100", # exp3_2_undisturbed_100
+        prefix = "exp4_0_undisturbed_synth_100", # exp3_2_undisturbed_100
         seed = 50,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
@@ -191,31 +186,10 @@ if __name__ == '__main__':
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
         
-        failure_chance = 0.1, # failure_chance,
-        tpr = 0.8, # true positive rate,
-        fpr = 0.15, # false positive rate,
+        failure_chance = 0., # 0 / .1   # failure_chance,
+        tpr = 1., # 1 / .8   # true positive rate,
+        fpr = 0., # 0 / .15   # false positive rate,
     )
     test = Runner(args)
     # train with moderate sensor failure rate
     test.run()
-    # train without sensor failures
-    # test.run(
-    #     failure_chances=[0.0],
-    #     tprs=[1.0],
-    #     fprs=[0.0],
-    #     num_repetitions=1,
-    # )
-    # test with several real-world sensor failure rates
-    # test.run(
-    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
-    #     tprs=[0.6, 0.8, 0.95, 1.0],
-    #     fprs=[0.65, 0.3, 0.15, 0.0],
-    #     num_repetitions=15,
-    # )
-    # test.run(
-    #     failure_chances=[0.0, 0.15],
-    #     tprs=[0.0, 1.0],
-    #     fprs=[1.0, 0.0],
-    #     num_repetitions=3,
-    # )
-
