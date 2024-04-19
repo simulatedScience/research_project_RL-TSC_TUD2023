@@ -10,7 +10,6 @@ temp_images
 others_code
 literature
 gym_practice
-src/LibSignal-modified/run tests.py
 # ignore presentation (includes too many images)
 presentation/*
 # ignore some files
