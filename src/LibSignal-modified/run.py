@@ -174,8 +174,8 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 22, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp4_0_undisturbed_synth_100", # exp3_2_undisturbed_100
-        seed = 50,
+        prefix = "exp6_undisturbed_seed100_eps30_nn32", # exp3_2_undisturbed_100
+        seed = 100,
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
         delay_type = "apx", # approximated delay
@@ -183,9 +183,9 @@ if __name__ == '__main__':
         task = "tsc",
         agent = "presslight", # frap, presslight, colight, fixedtime
         world = "sumo",
-        network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
+        network = "sumo1x3_synth_uniform", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
-        
+
         failure_chance = 0., # 0 / .1   # failure_chance,
         tpr = 1., # 1 / .8   # true positive rate,
         fpr = 0., # 0 / .15   # false positive rate,
@@ -193,3 +193,10 @@ if __name__ == '__main__':
     test = Runner(args)
     # train with moderate sensor failure rate
     test.run()
+    # play short beep sound when done
+    import winsound
+    frequency = 2500  # Set Frequency To 2500 Hertz
+    duration = 300
+
+    winsound.Beep(frequency, duration)
+

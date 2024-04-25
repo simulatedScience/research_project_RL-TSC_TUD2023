@@ -139,8 +139,9 @@ if __name__ == '__main__':
     args = argparse.Namespace(
         thread_num = 22,
         ngpu = 1,
+        prefix = "exp6_disturbed_seed100_eps30_nn32", # exp3_1_undisturbed_100
         # prefix = "exp3_1_maxpressure", # exp3_1_undisturbed_100
-        prefix = "exp4_0_disturbed_synth_100",
+        # prefix = "exp4_0_undisturbed_synth_100",
         seed = 0,
         debug = True,
         interface = "libsumo",
@@ -164,13 +165,26 @@ if __name__ == '__main__':
     #     fprs=[0.0], # 0.3
     #     num_repetitions=1,
     # )
-    # test
+    # tests 5-6 (4*4*4*8=64*8=512 runs)
     test.run(
-        failure_chances=[0.2, 0.15, 0.1, 0.05, 0.0],
-        tprs=[0.6, 0.8, 0.85, 0.9, 0.95, 1.0],
-        fprs=[0.65, 0.3, 0.2, 0.15, 0.1, 0.0],
-        num_repetitions=15,
+        failure_chances=[0.15, 0.1, 0.05, 0.0],
+        tprs=[0.6, 0.8, 0.95, 1.0],
+        fprs=[0.65, 0.3, 0.15, 0.0],
+        num_repetitions=8,
     )
+    # play short beep sound when done
+    import winsound
+    frequency = 2500  # Set Frequency To 2500 Hertz
+    duration = 300
+
+    winsound.Beep(frequency, duration)
+    # tests 3-4 (6*6*5*15=180*15=2700 runs)
+    # test.run(
+    #     failure_chances=[0.2, 0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.85, 0.9, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.2, 0.15, 0.1, 0.0],
+    #     num_repetitions=15,
+    # )
     # test.run(
     #     failure_chances=[0.0],
     #     tprs=[0.0, 1.0],
