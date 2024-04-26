@@ -64,7 +64,7 @@ def plot_departure_rates(files: list, window_length: int, normalize_time: bool, 
         normalize_time (bool): Whether to normalize the departure times.
         labels (list): Optional list of labels for the plots.
     """
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(9, 6))
     for idx, file_path in enumerate(files):
         label = labels[idx] if labels is not None and idx < len(labels) else os.path.basename(file_path)
         departure_times = parse_xml(file_path, normalize_time=normalize_time)
