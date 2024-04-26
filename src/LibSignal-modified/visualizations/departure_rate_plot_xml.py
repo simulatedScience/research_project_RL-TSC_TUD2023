@@ -30,12 +30,9 @@ def parse_xml(file_path: str, normalize_time: bool = False) -> np.ndarray:
 
     return departure_times
 
-def calculate_departure_rate(
-        departure_times: np.ndarray,
-        window_length: int,
-        step_size: int = 1) -> tuple:
+def calculate_departure_rate(departure_times: np.ndarray, window_length: int, step_size: int = 1) -> tuple:
     """
-    Calculate the departure rate of vehicles using a sliding window approach.
+    Calculate the departure rate of vehicles using a centered sliding window approach.
 
     Args:
         departure_times (np.ndarray): Array of vehicle departure times.
@@ -52,7 +49,9 @@ def calculate_departure_rate(
     window_bins = int(window_length / step_size)
     windowed_counts = np.convolve(counts, np.ones(window_bins), 'valid') / window_length * 3600
 
-    valid_times = time_bins[int(window_bins/2):-int(window_bins/2)]
+    # Avoid using start and end points where the window isn't fully filled
+    half_window = window_bins // 2
+    valid_times = time_bins[half_window:-half_window]
     return valid_times, windowed_counts
 
 def plot_departure_rates(files: list, window_length: int, normalize_time: bool, labels: list = None) -> None:
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     for path in filepaths:
         print(" "*4 + path, end=",\n")
     labels = ["synthetic" if "synth" in os.path.basename(path) else "real-world" for path in filepaths]
-    window_length = 600  # Sliding window length in seconds (10 minutes)
+    window_length = 300  # Sliding window length in seconds (10 minutes)
     normalize_time = True  # Whether to normalize by subtracting the start time of the first vehicle
 
     plot_departure_rates(
