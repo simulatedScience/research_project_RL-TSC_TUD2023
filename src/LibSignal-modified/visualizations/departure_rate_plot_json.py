@@ -1,5 +1,5 @@
 """
-Visualize the arrival rate of vehicles in a network from a given flow file (JSON).
+Visualize the departure rate of vehicles in a network from a given flow file (JSON).
 
 Author: Sebastian Jost & GPT-4 (27.10.2023)
 """
@@ -7,9 +7,9 @@ import json
 import matplotlib.pyplot as plt
 from collections import Counter
 
-def calculate_centered_arrival_rate_padded(data, window_length_seconds):
+def calculate_centered_departure_rate_padded(data, window_length_seconds):
     """
-    Calculate the arrival rate of vehicles over time based on a centered window length.
+    Calculate the departure rate of vehicles over time based on a centered window length.
     Pads the result with None for times outside the window range.
     
     Args:
@@ -18,7 +18,7 @@ def calculate_centered_arrival_rate_padded(data, window_length_seconds):
     
     Returns:
         times (list of int): List of times.
-        rates_per_hour (list of float): List of arrival rates (vehicles/hour) corresponding to the times.
+        rates_per_hour (list of float): List of departure rates (vehicles/hour) corresponding to the times.
     """
     start_times = [round(entry['startTime']) for entry in data]
     counts = Counter(start_times)
@@ -36,18 +36,18 @@ def calculate_centered_arrival_rate_padded(data, window_length_seconds):
         
     return times, rates_per_hour
 
-def plot_centered_arrival_rate(data, window_length_seconds):
+def plot_centered_departure_rate(data, window_length_seconds):
     """
-    Plot the arrival rate of vehicles over time based on a centered window length.
+    Plot the departure rate of vehicles over time based on a centered window length.
     
     Args:
         data (list of dict): List of dictionaries containing vehicle data.
         window_length_seconds (int): Length of the centered window in seconds used to calculate the vehicles per hour.
     """
-    times, rates_per_hour = calculate_centered_arrival_rate_padded(data, window_length_seconds)
+    times, rates_per_hour = calculate_centered_departure_rate_padded(data, window_length_seconds)
     plt.plot(times, rates_per_hour, label=f'Centered Window Length: {window_length_seconds}s')
     plt.axhline(y=2800, color='r', linestyle='--', label='Total Vehicles: 2800')
-    plt.title('Arrival Rate of Vehicles Over Time for Centered Window Length')
+    plt.title('departure Rate of Vehicles Over Time for Centered Window Length')
     plt.xlabel('Time')
     plt.ylabel('Vehicles per Hour')
     plt.legend()
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     with open(filepath, "r") as file:
         data = json.load(file)
     
-    # Plot the arrival rate for a centered window length of 300 seconds
-    plot_centered_arrival_rate(data, window_length_seconds=300)
+    # Plot the departure rate for a centered window length of 300 seconds
+    plot_centered_departure_rate(data, window_length_seconds=300)
