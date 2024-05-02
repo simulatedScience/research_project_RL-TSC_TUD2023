@@ -145,12 +145,18 @@ def plot_averaged_data_with_range(
     exp_info = experiment_name(sim, method, network, exp_name)
     exp_subtitle = f"Sim: {sim}, Method: {method}, Network: {network}, Exp: {exp_name}"
 
-    
+
     # Reordering the legend entries for row-first filling
     num_cols = 4
-    reordered_labels = [legend_labels[i::num_cols] for i in range(num_cols)]
-    reordered_labels = [label for sublist in reordered_labels for label in sublist]
-    reordered_lines = [legend_lines[legend_labels.index(label)] for label in reordered_labels]
+    if x_param in ("failure chance", "false positive rate"):
+        legend_labels.insert(num_cols, legend_labels.pop(-1))
+        legend_lines.insert(num_cols, legend_lines.pop(-1))
+        reordered_labels = legend_labels
+        reordered_lines = legend_lines
+    else:
+        reordered_labels = [legend_labels[i::num_cols] for i in range(num_cols)] # sort list into table
+        reordered_labels = [label for sublist in reordered_labels for label in sublist] # flatten list
+        reordered_lines = [legend_lines[legend_labels.index(label)] for label in reordered_labels] # reorder lines to match labels
 
     plt.xlabel(x_param_text)
     plt.ylabel(y_param_text)
@@ -162,10 +168,7 @@ def plot_averaged_data_with_range(
     plt.grid(color="#dddddd")
     plt.tight_layout()
     # try to create plots folder
-    try:
-        os.mkdir(os.path.join(exp_path, 'plots'))
-    except FileExistsError:
-        pass
+    os.makedirs(os.path.join(exp_path, 'plots'), exist_ok=True)
     plt.savefig(os.path.join(exp_path, 'plots', f'{x_param_text}_{y_param_text}_{exp_info}.png'))
     plt.show()
 
@@ -269,6 +272,18 @@ def parameters_to_hsv(value1, value2, value3, value1_range, value2_range, value3
 
     return (h, s, v)
 
+def plot_data_for_all_agents(files):
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Creating 1 row, 3 columns of subplots with shared Y axis
+    for idx, (label, filepath) in enumerate(files.items()):
+        data = read_and_group_test_data(filepath)
+        # Assuming we have a function that handles the plotting for a given dataset
+        plot_averaged_data_with_range(data, 'failure chance', 'travel_time', axs[idx])
+        axs[idx].set_title(label)
+    
+    plt.legend()  # Add a common legend
+    plt.tight_layout()
+    plt.show()
+
 def parameters_to_color(value1, value2, value3, value1_range, value2_range, value3_range, rgb_range=(0, 1)):
     """
     Map the three values to an RGB color based on the given ranges.
@@ -306,6 +321,7 @@ def main():
     root = tk.Tk()
     root.withdraw()
     filepath = filedialog.askopenfilename(initialdir=r".\data\output_data\tsc\sumo_presslight\sumo1x3")
+    print(filepath)
     # load test data from file
     grouped_data = read_and_group_test_data(filepath)
     min_max = None
