@@ -15,6 +15,9 @@ ABBREVIATIONS = {
     "failure chance": "fc",
     "true positive rate": "tpr",
     "false positive rate": "fpr",
+    "throughput": "tp",
+    "travel time": "tt",
+    "queue": "q",
 }
 
 NETWORK_CONVERTER = {
@@ -242,6 +245,7 @@ def exp_config_from_path(exp_path: str, convert_network: bool=False) -> tuple[st
     
     Args:
         exp_path (str): Path to the experiment folder.
+        
     
     Returns:
         tuple(str, str, str, str): A tuple containing the simulator, method, network, and experiment names.

@@ -5,8 +5,8 @@ In the plots, each noise parameter ist represented by one color component (Hue, 
 Authors: Sebastian Jost & GPT-4 (24.10.2023)
 """
 
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 import os
 
 import matplotlib.pyplot as plt
@@ -17,29 +17,6 @@ import hsluv
 from data_reader import read_and_group_test_data, experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
 
 
-def parameters_to_rgb_hsluv(param1: float, param2: float, param3: float) -> tuple:
-    """
-    Given three parameters in range [0,1], return a color using HSLuv color space.
-    Each parameter gets mapped to a component of the HSLuv color space, then that color is converted to RGB.
-    
-    Args:
-        param1 (float): First parameter in range [0,1].
-        param2 (float): Second parameter in range [0,1].
-        param3 (float): Third parameter in range [0,1].
-
-    Returns:
-        Tuple[float]: RGB color.
-    """
-    # Adjust the ranges for better visual differentiation
-    h = (param1) * 330 # Hue range [0, 330]
-    s = 35 + (param2) * 65 # Saturation range [35, 100]
-    l = 20 + (param3) * 60  # Lightness range [20, 80]
-
-    hsluv_color = [h, s, l]
-    # rgb_color = hsluv.hsluv_to_rgb(hsluv_color)
-    rgb_color = mplcolors.hsv_to_rgb(hsluv_color)
-    return tuple(rgb_color)
-
 def plot_averaged_data_with_range(
         segregated_data: dict,
         x_param: str,
@@ -48,7 +25,9 @@ def plot_averaged_data_with_range(
         ax: plt.Axes = None,
         y_lim: tuple = None,
         min_max: bool = None,
-        ):
+        show_legend_and_title: bool = True,
+        save_plot: bool = True,
+        ) -> tuple[list[str], list[plt.Line2D]]:
     """
     Plot the averaged metric for each group along with its range.
     
@@ -56,7 +35,16 @@ def plot_averaged_data_with_range(
         segregated_data (dict): Dictionary grouping data by noise settings.
         x_param (str): The noise setting for the x-axis ("failure chance", "true positive rate", or "false positive rate").
         y_param (str): The performance metric for the y-axis (e.g., "throughput", "delay").
+        exp_path (str): Path to the experiment folder
+        ax (plt.Axes): The axis to plot on (default is None -> create a new figure).
+        y_lim (tuple): The y-axis limits (default is None -> fit to data).
         min_max (bool): Whether to use the minimum and maximum values for the range (True) or the standard deviation (False) or no range (None).
+        show_legend_and_title (bool): Whether to show the legend and plot title (default is True).
+        save_plot (bool): Whether to save the plot as a PNG file (default is True).
+    
+    Returns:
+        (list[str]): List of labels for the legend.
+        (list[plt.Line2D]): List of lines for the legend.
     """
     average_data = compute_averages(segregated_data)
     segregated_data = segregate_data_by_params(average_data, x_param)
@@ -64,9 +52,11 @@ def plot_averaged_data_with_range(
     if ax is None:
         # plt.figure(figsize=(10, 7))
         fig = plt.figure(figsize=(8.8, 10))
+        fig.tight_layout()
         ax = fig.add_subplot(111)
         # set subplot configuration
         fig.subplots_adjust(left=0.075, bottom=0.125, right=0.98, top=0.82, wspace=None, hspace=None)
+        print("Added subplot")
         
     
     legend_lines = []
@@ -179,8 +169,7 @@ def plot_averaged_data_with_range(
 
     sim, method, network, exp_name = exp_config_from_path(exp_path, convert_network=True)
     exp_info = experiment_name(sim, method, network, exp_name)
-    exp_subtitle = f"Sim: {sim}, Method: {method}, Network: {network}, Exp: {exp_name}"
-
+    exp_subtitle = f"Method: {method}\nExp: {exp_name}"
 
 
     # Reordering the legend entries for row-first filling
@@ -202,16 +191,20 @@ def plot_averaged_data_with_range(
     # set y limits
     if y_lim is not None:
         ax.set_ylim(*y_lim)
-    ax.set_title(f'{y_param_text} vs {x_param_text}\n{exp_subtitle}')
-    ax.legend(reordered_lines, reordered_labels, loc='best', ncol=num_cols)
     ax.grid(color="#dddddd")
-    fig.tight_layout()
-    # try to create plots folder
-    os.makedirs(os.path.join(exp_path, 'plots'), exist_ok=True)
-    fig.savefig(os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.png'))
-    # fig.show()
-    plt.close()
-    plt.clf()
+    if show_legend_and_title:
+        ax.set_title(f'{y_param_text} vs {x_param_text}\n{exp_subtitle}')
+        ax.legend(reordered_lines, reordered_labels, loc='best', ncol=num_cols)
+    # else:
+    #     ax.set_title(exp_subtitle)
+    if save_plot:
+        # try to create plots folder
+        os.makedirs(os.path.join(exp_path, 'plots'), exist_ok=True)
+        plt.savefig(os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.png'))
+        # fig.show()
+        plt.close()
+        plt.clf()
+    return reordered_labels, reordered_lines
 
 
 def compute_averages(grouped_data: dict) -> list:
@@ -273,6 +266,96 @@ def segregate_data_by_params(data, x_param):
     return segregated_data
 
 
+def plot_data_for_all_agents(
+        files: dict[str, str],
+        x_params: list[str],
+        y_params: list[str],
+        y_lims: list[tuple[float, float]],
+        output_path: str = None,
+        ):
+    # Creating 1 row, len(files) columns of subplots with shared Y axis
+    for y_param, y_lim in zip(y_params, y_lims):
+        for x_param in x_params:
+            fig, axs = plt.subplots(1, len(files), sharey=True, figsize=(15, 8))
+            fig.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.8, wspace=0.05, hspace=0.05)
+            for idx, (label, filepath) in enumerate(files.items()):
+                exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
+                data = read_and_group_test_data(filepath)
+                # Assuming we have a function that handles the plotting for a given dataset
+                legend_labels, legend_lines = plot_averaged_data_with_range(
+                    data,
+                    x_param,
+                    y_param,
+                    exp_path=exp_path,
+                    ax=axs[idx],
+                    y_lim=y_lim,
+                    show_legend_and_title=False,
+                    save_plot=False,
+                    )
+                # add label as caption
+                axs[idx].text(
+                    0.5,
+                    -0.085,
+                    label,
+                    transform=axs[idx].transAxes,
+                    fontsize=12,
+                    horizontalalignment='center',
+                    verticalalignment='top',
+                )
+        
+            x_param_text = x_param.replace('_', ' ')
+            y_param_text = y_param.replace('_', ' ')
+
+            sim, method, network, exp_name = exp_config_from_path(exp_path, convert_network=True)
+            subtitle = f"Sim: {sim}, Network: {network}"
+            fig.suptitle(
+                f'{y_param_text} vs {x_param_text}',
+                x=0.05,
+                y=0.95,
+                fontsize=18,
+                horizontalalignment='left',
+                verticalalignment='top')
+            fig.text(0.05, 0.91,
+                     subtitle,
+                     fontsize=12,
+                     horizontalalignment='left',
+                     verticalalignment='top')
+            
+            for idx in range(1, len(axs)):
+                axs[idx].set_ylabel('')
+            
+            # Add a common legend in the top right corner outside the subplots
+            fig.legend(legend_lines, legend_labels, ncol=4, loc='upper right')
+            # fig.tight_layout()
+            if output_path:
+                os.makedirs(output_path, exist_ok=True)
+                plt.savefig(os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_combined.png'))
+            plt.show()
+
+
+def parameters_to_rgb_hsluv(param1: float, param2: float, param3: float) -> tuple:
+    """
+    Given three parameters in range [0,1], return a color using HSLuv color space.
+    Each parameter gets mapped to a component of the HSLuv color space, then that color is converted to RGB.
+    
+    Args:
+        param1 (float): First parameter in range [0,1].
+        param2 (float): Second parameter in range [0,1].
+        param3 (float): Third parameter in range [0,1].
+
+    Returns:
+        Tuple[float]: RGB color.
+    """
+    # Adjust the ranges for better visual differentiation
+    h = (param1) * 330 # Hue range [0, 330]
+    s = 35 + (param2) * 65 # Saturation range [35, 100]
+    l = 20 + (param3) * 60  # Lightness range [20, 80]
+
+    hsluv_color = [h, s, l]
+    # rgb_color = hsluv.hsluv_to_rgb(hsluv_color)
+    rgb_color = mplcolors.hsv_to_rgb(hsluv_color)
+    return tuple(rgb_color)
+
 # def parameter_to_rgb(value: float, rgb_min: int=0, rgb_max: int=1) -> int:
 #     """
 #     Map a parameter value in the range [0, 1] to an RGB value based on the specified min and max.
@@ -286,18 +369,6 @@ def segregate_data_by_params(data, x_param):
 #         int: RGB value for the given parameter.
 #     """
 #     return rgb_min + value * (rgb_max - rgb_min)
-
-def plot_data_for_all_agents(files):
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)  # Creating 1 row, 3 columns of subplots with shared Y axis
-    for idx, (label, filepath) in enumerate(files.items()):
-        data = read_and_group_test_data(filepath)
-        # Assuming we have a function that handles the plotting for a given dataset
-        plot_averaged_data_with_range(data, 'failure chance', 'travel_time', axs[idx])
-        axs[idx].set_title(label)
-    
-    plt.legend()  # Add a common legend
-    plt.tight_layout()
-    plt.show()
 
 def parameters_to_hsluv(
         values: list[float],
@@ -354,54 +425,33 @@ def parameters_to_color(
 
 def main():
     # Prompt user to select a file
-    root = tk.Tk()
-    root.withdraw()
-    filepath = filedialog.askopenfilename(initialdir=r".\data\output_data\tsc\sumo_presslight\sumo1x3")
-    print(filepath)
+    # root = tk.Tk()
+    # root.withdraw()
+    # filepath = filedialog.askopenfilename(initialdir=r".\data\output_data\tsc\sumo_presslight\sumo1x3")
+    # print(filepath)
     
-    if filepath == "":
-        filepaths = [
-        # # undisturbed
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log",
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log",
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log",
-        # # disturbed
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log",
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log",
-        #     "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log",
-        # maxpressure
-            "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
-        ]
-    else:
-        filepaths = [filepath]
-    for filepath in filepaths:
-        
-        # load test data from file
-        grouped_data = read_and_group_test_data(filepath)
-        min_max = None
-        exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
-        # plot averaged data with ranges
-        ylim_travel_time = (60, 280)
-        ylim_throughput = (1800, 2900)
-        plot_averaged_data_with_range(grouped_data, 'failure chance', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
-        # print("="*50)
-        plot_averaged_data_with_range(grouped_data, 'failure chance', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
-        # print("="*50)
-        # plot_averaged_data_with_range(grouped_data, 'failure chance', 'queue', exp_path, min_max=min_max)
-        # plot_averaged_data_with_range(grouped_data, 'failure chance', 'delay', exp_path, min_max=min_max)
-        plot_averaged_data_with_range(grouped_data, 'true positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
-        # print("="*50)
-        plot_averaged_data_with_range(grouped_data, 'true positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
-        # print("="*50)
-        # plot_averaged_data_with_range(grouped_data, 'true positive rate', 'queue', exp_path, min_max=min_max)
-        # plot_averaged_data_with_range(grouped_data, 'true positive rate', 'delay', exp_path, min_max=min_max)
-        plot_averaged_data_with_range(grouped_data, 'false positive rate', 'throughput', exp_path, min_max=min_max, y_lim=ylim_throughput)
-        # print("="*50)
-        plot_averaged_data_with_range(grouped_data, 'false positive rate', 'travel_time', exp_path, min_max=min_max, y_lim=ylim_travel_time)
-        # print("="*50)
-        # plot_averaged_data_with_range(grouped_data, 'false positive rate', 'queue', exp_path, min_max=min_max)
-        # plot_averaged_data_with_range(grouped_data, 'false positive rate', 'delay', exp_path, min_max=min_max)
+    filepaths = {
+    # # undisturbed
+    #     "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
+        "Undisturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
+    #     "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
+    # # disturbed
+    #     "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
+        "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
+    #     "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
+    # maxpressure
+        "MaxPressure": "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
+    }
     
+    plot_data_for_all_agents(
+        files=filepaths,
+        x_params=["failure chance", "true positive rate", "false positive rate"],
+        y_params=["throughput", "travel_time"],
+        y_lims=[(2200, 2900), (60, 200)],
+        # y_lims=[(1800, 2900), (60, 280)],
+        output_path=os.path.join("data", "output_data", "tsc", "stats")
+    )
+
 if __name__ == '__main__':
     main()
 
