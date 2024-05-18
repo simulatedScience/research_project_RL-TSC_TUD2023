@@ -327,10 +327,17 @@ def plot_data_for_all_agents(
             # Add a common legend in the top right corner outside the subplots
             fig.legend(legend_lines, legend_labels, ncol=4, loc='upper right')
             # fig.tight_layout()
+            def abbreviate(agent_key: str):
+                agent_key = agent_key.replace("Disturbed, seed=", "dPL-s")
+                agent_key = agent_key.replace("Undisturbed, seed=", "cPL-s")
+                agent_key = agent_key.replace("MaxPressure", "MP")
+                return agent_key
             if output_path:
+                agents_identifier: str = "_".join(abbreviate(key) for key in files.keys())
                 os.makedirs(output_path, exist_ok=True)
-                plt.savefig(os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_combined.png'))
-            plt.show()
+                plt.savefig(os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{agents_identifier}_combined.png'))
+            # plt.show()
+            plt.clf()
 
 
 def parameters_to_rgb_hsluv(param1: float, param2: float, param3: float) -> tuple:
@@ -432,13 +439,13 @@ def main():
     
     filepaths = {
     # # undisturbed
-    #     "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
+        # "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
         "Undisturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
-    #     "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
+        # "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
     # # disturbed
-    #     "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
-        "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
-    #     "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
+        "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
+        # "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
+        # "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
     # maxpressure
         "MaxPressure": "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
     }
@@ -454,4 +461,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

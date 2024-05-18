@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # open filedialog to select file
     from tkinter import Tk
     from tkinter.filedialog import askopenfilename
-
+    
     # open filedialog to select file
     Tk().withdraw()
     filepath = askopenfilename(title="Select RL TSC agent output file", filetypes=[("Log files", "*DTL.log")])

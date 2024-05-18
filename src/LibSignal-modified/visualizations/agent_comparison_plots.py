@@ -40,6 +40,19 @@ def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
 
 
 
+def extract_experiment_name_from_file(filepath: str) -> str:
+    """
+    Extracts the experiment name from the given filepath.
+    
+    Args:
+    - filepath (str): Path to the log file.
+    
+    Returns:
+    - str: The extracted experiment name.
+    """
+    filename = os.path.basename(filepath)
+    return filename.split("_", 2)[2].rsplit(".", 1)[0]
+
 def extract_agent_metrics_data(filepaths: list[str], 
                                configs: list[NoiseSettings], 
                                metric: str) -> dict:
@@ -77,7 +90,6 @@ def extract_agent_metrics_data(filepaths: list[str],
 
     return agent_data
 
-
 def extract_experiment_name_from_file(filepath: str) -> str:
     """
     Extracts the experiment name from the given log file.
@@ -93,7 +105,6 @@ def extract_experiment_name_from_file(filepath: str) -> str:
         line = file.readline()
         experiment_name = line.split(":")[1].split()[0]
     return experiment_name
-
 
 def plot_agent_comparison_chart(data: dict, noise_configs: list[NoiseSettings], metric: str, fixedtime_value: float):
     cmap = plt.cm.viridis
@@ -138,7 +149,7 @@ def main():
     # list of file paths for different agents
     filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
     filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
-
+    
     # Noise settings to compare
     noise_configs = [
             NoiseSettings(0.0, 1.0, 0.0),
