@@ -1,8 +1,9 @@
 # standard library imports
 import time
 # third-party imports
-import libsumo
+# import libsumo
 # import traci_/libsumo_
+import traci as libsumo
 
 # Define your SUMO configuration file (.sumocfg)
 sumo_config: str = "sumo_config.sumocfg"
@@ -10,7 +11,7 @@ sumo_config: str = "sumo_config.sumocfg"
 traffic_scale_factor: float = 3.0
 
 # Define a function to control traffic signals based on demand
-def demand_based_signal_control(min_green_time=1000, min_red_time=500, yellow_time=300):
+def demand_based_signal_control(min_green_time=1000, min_red_time=500, yellow_time=300, switch_at_n_veh=500):
     # Get all traffic light ids
     traffic_light_ids = libsumo.trafficlight.getIDList()
 
@@ -38,13 +39,15 @@ def demand_based_signal_control(min_green_time=1000, min_red_time=500, yellow_ti
                 next_phase_index = (current_phase_index + 1) % len(phases)
                 libsumo.trafficlight.setPhase(tl_id, next_phase_index)
                 libsumo.trafficlight.setPhaseDuration(tl_id, 0)  # Reset the phase duration
-        elif halted_vehicle_count > 5 and time_in_current_phase >= min_green_time:  
-            # If there are more than 5 vehicles waiting and the minimum green time has passed, switch to the next phase
+        elif halted_vehicle_count > switch_at_n_veh and time_in_current_phase >= min_green_time:  
+            # If there are more than `switch_at_n_veh` vehicles waiting and the minimum green time has passed, switch to the next phase
             next_phase_index = (current_phase_index + 1) % len(phases)
+            print(f"Switching to the next phase at traffic light {tl_id} with {halted_vehicle_count} vehicles 1")
             libsumo.trafficlight.setPhase(tl_id, next_phase_index)
             libsumo.trafficlight.setPhaseDuration(tl_id, 0)  # Reset the phase duration
-        elif halted_vehicle_count <= 5 and time_in_current_phase >= min_red_time:
-            # If there are 5 or fewer vehicles waiting and the minimum red time has passed, switch to the next phase
+        elif halted_vehicle_count <= switch_at_n_veh and time_in_current_phase >= min_red_time:
+            # If there are `switch_at_n_veh` or fewer vehicles waiting and the minimum red time has passed, switch to the next phase
+            print(f"Switching to the next phase at traffic light {tl_id} with {halted_vehicle_count} vehicles 2")
             next_phase_index = (current_phase_index + 1) % len(phases)
             libsumo.trafficlight.setPhase(tl_id, next_phase_index)
             libsumo.trafficlight.setPhaseDuration(tl_id, 0)  # Reset the phase duration
@@ -52,8 +55,8 @@ def demand_based_signal_control(min_green_time=1000, min_red_time=500, yellow_ti
 
 
 # Run the simulation using the configuration file
-libsumo.start(["sumo", "-c", sumo_config])
-# libsumo.start(["sumo-gui", "-c", sumo_config])
+# libsumo.start(["sumo", "-c", sumo_config])
+libsumo.start(["sumo-gui", "-c", sumo_config])
 print(f"started simulation with config file: {sumo_config}")
 
 libsumo.simulation.setScale(traffic_scale_factor)
