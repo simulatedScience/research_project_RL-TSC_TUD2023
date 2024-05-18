@@ -12,12 +12,20 @@ import os
 NoiseSettings = namedtuple('NoiseSettings', ['failure_chance', 'true_positive_rate', 'false_positive_rate'])
 
 ABBREVIATIONS = {
+    # failure parameters
     "failure chance": "fc",
     "true positive rate": "tpr",
     "false positive rate": "fpr",
+    # metrics
     "throughput": "tp",
     "travel time": "tt",
     "queue": "q",
+    "delay": "d",
+    "rewards": "r",
+    # agents
+    "maxpressure": "mp",
+    "fixedtime": "ft",
+    "presslight": "pl",
 }
 
 NETWORK_CONVERTER = {
@@ -263,7 +271,7 @@ def exp_config_from_path(exp_path: str, convert_network: bool=False) -> tuple[st
     exp_name = subfolders[3]
     return simulator, method, network, exp_name
 
-def experiment_name(simulator: str, method: str, network: str, exp_name: str) -> str:
+def experiment_name(simulator: str, method: str, network: str, exp_name: str, shortened: bool = False) -> str:
     """
     Create a string containing the experiment name.
     
@@ -276,6 +284,8 @@ def experiment_name(simulator: str, method: str, network: str, exp_name: str) ->
     Returns:
         str: A string containing all experiment info.
     """
+    if shortened:
+        return f'{simulator}_{ABBREVIATIONS[method]}_{network}_{exp_name}'
     return f'{simulator}_{method}_{network}_{exp_name}'
 
 
@@ -287,6 +297,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename()
+    if not file_path:
+        print("No file selected.")
+        exit()
     # read rl training file
     grouped_test_data = read_and_group_test_data(file_path)
     # display data
