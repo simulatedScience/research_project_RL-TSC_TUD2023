@@ -20,10 +20,17 @@ ABBREVIATIONS = {
 }
 # Define the agent identifiers based on experiment names
 AGENT_IDENTIFIERS = {
-    "exp3_1_maxpressure": "maxpressure",
-    "exp3_1_undisturbed_100": "undisturbed",
-    "exp3_1_disturbed_100": "disturbed",
-    "exp3_3_disturbed_100": "disturbed",
+    # "exp3_1_maxpressure": "maxpressure",
+    # "exp3_1_undisturbed_100": "undisturbed",
+    # "exp3_1_disturbed_100": "disturbed",
+    # "exp3_3_disturbed_100": "disturbed",
+    "exp6_1_maxpressure": "maxpressure",
+    "exp6_disturbed_seed100_eps30_nn32": "disturbed, seed=100",
+    "exp6_disturbed_seed200_eps30_nn32": "disturbed, seed=200",
+    "exp6_disturbed_seed300_eps30_nn32": "disturbed, seed=300",
+    "exp6_undisturbed_seed100_eps30_nn32": "undisturbed, seed=100",
+    "exp6_undisturbed_seed200_eps30_nn32": "undisturbed, seed=200",
+    "exp6_undisturbed_seed300_eps30_nn32": "undisturbed, seed=300",
 }
 
 def get_noise_config_shortform(noise_config: NoiseSettings) -> str:
@@ -107,9 +114,12 @@ def extract_experiment_name_from_file(filepath: str) -> str:
     return experiment_name
 
 def plot_agent_comparison_chart(data: dict, noise_configs: list[NoiseSettings], metric: str, fixedtime_value: float):
+    n_reps = 8
     cmap = plt.cm.viridis
-    colors = [cmap(0.2), cmap(0.8)]
-    agents_order = ["maxpressure", "undisturbed", "disturbed"]
+    colors = [cmap(0.2), cmap(0.8), cmap(0.5)]
+    # agents_order = ["maxpressure", "undisturbed", "disturbed"]
+    agents_order = list(data.keys())
+    agents_order.remove("fixedtime")
     plt.figure(figsize=(8, 6))
     bar_width = 0.35
     for i, agent in enumerate(agents_order):
@@ -119,7 +129,7 @@ def plot_agent_comparison_chart(data: dict, noise_configs: list[NoiseSettings], 
             position = i * (len(noise_configs) + 1) * bar_width + j * bar_width
             plt.bar(position, data[agent][config][metric]["average"], color=colors[j], label=bar_label, width=bar_width)
             # add error bars with standard deviation
-            plt.errorbar(position, data[agent][config][metric]["average"], yerr=data[agent][config][metric]["std"], color='black', capsize=3)
+            plt.errorbar(position, data[agent][config][metric]["average"], yerr=data[agent][config][metric]["std"]/(n_reps**0.5), color='black', capsize=3)
     plt.axhline(fixedtime_value, color='grey', linestyle='--', label=f"FixedTime 30s")
     tick_positions = [(i * (len(noise_configs) + 1) + 0.5) * bar_width for i in range(len(agents_order))]
     plt.xticks(tick_positions, agents_order)
@@ -143,16 +153,30 @@ def main():
     # filepath_disturbed = r"sumo_presslight\sumo1x3\exp_9_disturbed_100\logger\2024_02_22-14_45_09_BRF_random_uniform_10reps.log" # random uniform data, 10reps
     # filepath_disturbed = r"sumo_presslight\sumo1x3_short\exp_9_disturbed_100\logger\2024_02_22-15_13_13_BRF.log" # random uniform data, 10reps
     # new experiments 2024_03_25
-    filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp3_1_maxpressure\logger\2024_03_25-20_19_58_BRF.log"
-    filepath_undisturbed = r"sumo_presslight\sumo1x3\exp3_1_undisturbed_100\logger\2024_03_25-16_18_14_BRF.log"
-    filepath_disturbed = r"sumo_presslight\sumo1x3\exp3_3_disturbed_100\logger\2024_04_11-14_39_25_BRF.log"
-    # list of file paths for different agents
-    filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
-    filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
+    # filepath_maxpresure = r"sumo_maxpressure\sumo1x3\exp3_1_maxpressure\logger\2024_03_25-20_19_58_BRF.log"
+    # filepath_undisturbed = r"sumo_presslight\sumo1x3\exp3_1_undisturbed_100\logger\2024_03_25-16_18_14_BRF.log"
+    # filepath_disturbed = r"sumo_presslight\sumo1x3\exp3_3_disturbed_100\logger\2024_04_11-14_39_25_BRF.log"
+    filepaths = [
+    # undisturbed
+        "sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
+        "sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
+        "sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
+    # disturbed
+        "sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # *** 1.
+        "sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # ** 2.
+        "sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # * 3.
+    # maxpressure
+        "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
+    ]
     
+    # list of file paths for different agents
+    # filepaths = [filepath_maxpresure, filepath_undisturbed, filepath_disturbed]
+    filepaths = [os.path.join(basepath, filepath) for filepath in filepaths]
+
     # Noise settings to compare
     noise_configs = [
             NoiseSettings(0.0, 1.0, 0.0),
+            NoiseSettings(0.05, 0.95, 0.15),
             NoiseSettings(0.1, 0.8, 0.15),
             ]
     
