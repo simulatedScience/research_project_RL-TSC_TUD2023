@@ -38,6 +38,11 @@ I also added a new folder `visualizations` that contains several scripts to visu
 ## Run Model Pipeline
 This modification of the [LibSignal](https://github.com/DaRL-LibSignal/LibSignal/tree/master) Library is tested by executing `run.py` and setting configurations within that file. The settings are defined at the bottom of the file. Starting experiments via a command-line like the original LibSignal library is not guaranteed to work, but can easily made work again by changing the last few lines of `run.py`.
 
+Train models using `run.py` or train multiple models with random seeds using `run_multiple_times.bat`.
+Once models are trained, they can be tested with `run_tests.py`. For that, update `configs/sim/tsc/base.yml` and `.../presslight.yml` accordingly (enable testing and model loading, disable training). To test multiple models, you can use `run_multiple_tests.bat`.
+
+To train on synthetic data and test on real-world data, models need to be copied/ moved manually between the `output/tsc` folders from the training network to the testing network.
+
 # Maintaining plan
 
 I do not have specific plans to continue development of this LibSignal modifications after November 2023.

@@ -5,14 +5,14 @@ In the plots, each noise parameter ist represented by one color component (Hue, 
 Authors: Sebastian Jost & GPT-4 (24.10.2023)
 """
 
-# import tkinter as tk
-# from tkinter import filedialog
 import os
+from math import floor, ceil
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplcolors
 import numpy as np
 import hsluv
+from pandas.plotting import parallel_coordinates
 
 from data_reader import read_and_group_test_data, experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
 
@@ -200,7 +200,9 @@ def plot_averaged_data_with_range(
     if save_plot:
         # try to create plots folder
         os.makedirs(os.path.join(exp_path, 'plots'), exist_ok=True)
-        plt.savefig(os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.png'))
+        filename = os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.png')
+        plt.savefig(filename)
+        print(f"Saved plot to {filename}")
         # fig.show()
         plt.close()
         plt.clf()
@@ -276,7 +278,10 @@ def plot_data_for_all_agents(
     # Creating 1 row, len(files) columns of subplots with shared Y axis
     for y_param, y_lim in zip(y_params, y_lims):
         for x_param in x_params:
-            fig, axs = plt.subplots(1, len(files), sharey=True, figsize=(15, 8))
+            if len(files) <= 7:
+                fig, axs = plt.subplots(1, len(files), sharey=True, figsize=(15, 8))
+            else: # use multi-row grid to show all agents
+                fig, axs = plt.subplots(floor(len(files)**0.5), ceil(len(files)**0.5), sharey=True, figsize=(15, 8))
             fig.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.8, wspace=0.05, hspace=0.05)
             for idx, (label, filepath) in enumerate(files.items()):
                 exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
@@ -335,10 +340,55 @@ def plot_data_for_all_agents(
             if output_path:
                 agents_identifier: str = "_".join(abbreviate(key) for key in files.keys())
                 os.makedirs(output_path, exist_ok=True)
-                plt.savefig(os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{agents_identifier}_combined.png'))
+                filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{agents_identifier}_combined.png')
+                plt.savefig(filename)
+                print(f"Saved plot to {filename}")
             # plt.show()
             plt.clf()
 
+def add_custom_legend_entries(ax, other_params):
+    """
+    Add custom hue and brightness parameter explanations to the legend.
+    
+    Parameters:
+        ax (matplotlib.axes.Axes): The axes object to add the legend to.
+        other_params (list): A list containing hue_param and brightness_param values.
+    """
+    hue_param = other_params[0]
+    brightness_param = other_params[1]
+
+    # Adding two new legend entries
+    extra_legend_entries = [
+        (None, f"Hue parameter: {hue_param}"),
+        (None, f"Brightness parameter: {brightness_param}")
+    ]
+
+    # Existing legend handles and labels
+    handles, labels = ax.get_legend_handles_labels()
+
+    # Add the explanation lines to the legend
+    for handle, label in extra_legend_entries:
+        handles.append(handle)
+        labels.append(label)
+
+    # Create the updated legend
+    legend = ax.legend(
+        handles, labels,
+        loc='upper center',
+        bbox_to_anchor=(0.5, 1.15),
+        ncol=3,
+        fontsize=10,
+        frameon=True,
+        labelspacing=0.6,
+        handletextpad=0.5
+    )
+
+    # Align multicolumn text for explanations
+    for text in legend.get_texts()[-2:]:
+        text.set_horizontalalignment('left')
+        text.set_multialignment('left')
+
+    return legend
 
 def parameters_to_rgb_hsluv(param1: float, param2: float, param3: float) -> tuple:
     """
@@ -429,7 +479,6 @@ def parameters_to_color(
     color: tuple[float, float, float] = parameters_to_hsluv(values, value_ranges, hsvluv_ranges)
     return color
 
-
 def main():
     # Prompt user to select a file
     # root = tk.Tk()
@@ -439,16 +488,20 @@ def main():
     
     filepaths = {
     # # undisturbed
-        # "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
+        "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
         "Undisturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
-        # "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
+        "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
     # # disturbed
         "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
-        # "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
-        # "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
+        "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
+        "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
     # maxpressure
         "MaxPressure": "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
     }
+    # from agent_comparison_plots import choose_experiments
+    # filepaths = choose_experiments()
+    # filepaths["MaxPressure"] = "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log"
+    
     
     plot_data_for_all_agents(
         files=filepaths,

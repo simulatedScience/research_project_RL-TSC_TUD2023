@@ -154,6 +154,7 @@ def save_run_info():
 
 
 if __name__ == '__main__':
+    import random
     # use common.utils.load_config to load yml config files
     # args = argparse.Namespace(
     #     thread_num = 8,
@@ -171,11 +172,12 @@ if __name__ == '__main__':
     #     dataset = "onfly",
     # )
     args = parse_args()
+    seed = random.randint(0, 1000)
     args = argparse.Namespace(
         thread_num = 22, # use 8 CPU threads
         ngpu = 1, # use 1 GPU
-        prefix = "exp6_undisturbed_seed100_eps30_nn32", # exp3_2_undisturbed_100
-        seed = 100,
+        prefix = f"exp_new_disturbed_seed{seed}_eps30_nn128", # exp3_2_undisturbed_100
+        seed = seed, # random seed
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
         delay_type = "apx", # approximated delay
@@ -186,9 +188,12 @@ if __name__ == '__main__':
         network = "sumo1x3_synth_uniform", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
 
-        failure_chance = 0., # 0 / .1   # failure_chance,
-        tpr = 1., # 1 / .8   # true positive rate,
-        fpr = 0., # 0 / .15   # false positive rate,
+        # failure_chance = 0., # 0 / .1   # failure_chance,
+        # tpr = 1., # 1 / .8   # true positive rate,
+        # fpr = 0., # 0 / .15   # false positive rate,
+        failure_chance = 0.1, # 0 / .1   # failure_chance,
+        tpr = 0.8, # 1 / .8   # true positive rate,
+        fpr = 0.15, # 0 / .15   # false positive rate,
     )
     test = Runner(args)
     # train with moderate sensor failure rate

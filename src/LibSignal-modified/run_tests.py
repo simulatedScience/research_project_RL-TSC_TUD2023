@@ -96,12 +96,13 @@ class Runner:
                 for tpr in tprs:
                     first_model = True
                     for run_id in range(num_repetitions):
+                        run_seed: int = np.random.randint(0, 1000)
                         Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
                         Registry.mapping['command_mapping']['setting'].param['tpr'] = tpr
                         Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
-                        Registry.mapping['command_mapping']['setting'].param['seed'] = run_id
+                        Registry.mapping['command_mapping']['setting'].param['seed'] = run_seed
                         self.trainer.load_seed_from_config()
-                        run_identifier = f"id={run_id}_fc={failure_chance}_tpr={tpr}_fpr={fpr}"
+                        run_identifier = f"id={run_id}_seed={run_seed}_fc={failure_chance}_tpr={tpr}_fpr={fpr}"
                         logger.info(
                             f"Running RL Experiment: {Registry.mapping['command_mapping']['setting'].param['prefix']} " + \
                             f"\nrun_identifier: {run_identifier}" if run_id != "" else ""
@@ -136,11 +137,12 @@ if __name__ == '__main__':
     #         for failure_chance in [0.0, 0.05, 0.1, 0.15]:
     #             for run_id in range(num_repetitions):
     args = parse_args()
-    args = argparse.Namespace(
+    new_args = argparse.Namespace(
         thread_num = 22,
         ngpu = 1,
-        prefix = "exp6_disturbed_seed100_eps30_nn32", # exp3_1_undisturbed_100
-        # prefix = "exp3_1_maxpressure", # exp3_1_undisturbed_100
+        # prefix = "exp6_disturbed_seed100_eps30_nn32", # exp3_1_undisturbed_100
+        # prefix = "exp6_1_maxpressure", # exp3_1_undisturbed_100
+        # prefix = "error:to_be_replaced", # exp3_1_undisturbed_100
         # prefix = "exp4_0_undisturbed_synth_100",
         seed = 0,
         debug = True,
@@ -153,10 +155,11 @@ if __name__ == '__main__':
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
         
-        failure_chance = 0.2, # failure_chance,
+        failure_chance = 0.15, # failure_chance,
         tpr = 0.6, # true positive rate,
         fpr = 0.65, # false positive rate,
     )
+    args.__dict__.update(new_args.__dict__)
     test = Runner(args)
     # train
     # test.run(
@@ -166,18 +169,27 @@ if __name__ == '__main__':
     #     num_repetitions=1,
     # )
     # tests 5-6 (4*4*4*8=64*8=512 runs)
-    test.run(
+    # test.run(
+    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.15, 0.0],
+    #     num_repetitions=16,
+    # )
+    start_time = time.time()
+    test.run( # for quick testing
         failure_chances=[0.15, 0.1, 0.05, 0.0],
         tprs=[0.6, 0.8, 0.95, 1.0],
         fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=8,
+        num_repetitions=20,
     )
+    end_time = time.time()
+    print(f"Total time taken: {end_time - start_time}")
     # play short beep sound when done
-    import winsound
-    frequency = 2500  # Set Frequency To 2500 Hertz
-    duration = 300
+    # import winsound
+    # frequency = 2500  # Set Frequency To 2500 Hertz
+    # duration = 300
+    # winsound.Beep(frequency, duration)
 
-    winsound.Beep(frequency, duration)
     # tests 3-4 (6*6*5*15=180*15=2700 runs)
     # test.run(
     #     failure_chances=[0.2, 0.15, 0.1, 0.05, 0.0],
