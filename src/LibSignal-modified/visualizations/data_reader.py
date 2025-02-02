@@ -258,6 +258,7 @@ def exp_config_from_path(exp_path: str, convert_network: bool=False) -> tuple[st
     Returns:
         tuple(str, str, str, str): A tuple containing the simulator, method, network, and experiment names.
     """
+    exp_path = exp_path.replace('\\', '/')
     # split path at "tsc"
     tsc_path = exp_path.split('tsc')[1]
     # split path at subfolders

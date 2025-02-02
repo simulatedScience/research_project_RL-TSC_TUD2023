@@ -25,6 +25,7 @@ def plot_averaged_data_with_range(
         ax: plt.Axes = None,
         y_lim: tuple = None,
         min_max: bool = None,
+        show_labels: bool = True,
         show_legend_and_title: bool = True,
         save_plot: bool = True,
         ) -> tuple[list[str], list[plt.Line2D]]:
@@ -40,7 +41,7 @@ def plot_averaged_data_with_range(
         y_lim (tuple): The y-axis limits (default is None -> fit to data).
         min_max (bool): Whether to use the minimum and maximum values for the range (True) or the standard deviation (False) or no range (None).
         show_legend_and_title (bool): Whether to show the legend and plot title (default is True).
-        save_plot (bool): Whether to save the plot as a PNG file (default is True).
+        save_plot (bool): Whether to save the plot as a .svg file (default is True).
     
     Returns:
         (list[str]): List of labels for the legend.
@@ -185,9 +186,9 @@ def plot_averaged_data_with_range(
     reordered_lines = [legend_lines[legend_labels.index(label)] for label in reordered_labels] # reorder lines to match labels
     # else:
     #     raise ValueError(f"Eunexpected value encountered for x_param: {x_param}. Expected one of ('failure chance', 'true positive rate', 'false positive rate')")
-
-    ax.set_xlabel(x_param_text)
-    ax.set_ylabel(y_param_text)
+    if show_labels:
+        ax.set_xlabel(x_param_text)
+        ax.set_ylabel(y_param_text)
     # set y limits
     if y_lim is not None:
         ax.set_ylim(*y_lim)
@@ -200,7 +201,7 @@ def plot_averaged_data_with_range(
     if save_plot:
         # try to create plots folder
         os.makedirs(os.path.join(exp_path, 'plots'), exist_ok=True)
-        filename = os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.png')
+        filename = os.path.join(exp_path, 'plots', f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{exp_info}.svg')
         plt.savefig(filename)
         print(f"Saved plot to {filename}")
         # fig.show()
@@ -282,10 +283,12 @@ def plot_data_for_all_agents(
                 fig, axs = plt.subplots(1, len(files), sharey=True, figsize=(15, 8))
             else: # use multi-row grid to show all agents
                 fig, axs = plt.subplots(floor(len(files)**0.5), ceil(len(files)**0.5), sharey=True, figsize=(15, 8))
-            fig.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.8, wspace=0.05, hspace=0.05)
+            # fig.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.8, wspace=0.05, hspace=0.05)
             for idx, (label, filepath) in enumerate(files.items()):
                 exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/") ]
                 data = read_and_group_test_data(filepath)
+                if len(files) > 7:
+                    idx = (idx % ceil(len(files)**0.5), idx // ceil(len(files)**0.5))
                 # Assuming we have a function that handles the plotting for a given dataset
                 legend_labels, legend_lines = plot_averaged_data_with_range(
                     data,
@@ -294,13 +297,14 @@ def plot_data_for_all_agents(
                     exp_path=exp_path,
                     ax=axs[idx],
                     y_lim=y_lim,
+                    show_labels=len(files) <= 7,
                     show_legend_and_title=False,
                     save_plot=False,
                     )
                 # add label as caption
                 axs[idx].text(
                     0.5,
-                    -0.085,
+                    -0.085 if len(files) <= 7 else -0.3,
                     label,
                     transform=axs[idx].transAxes,
                     fontsize=12,
@@ -316,17 +320,19 @@ def plot_data_for_all_agents(
             fig.suptitle(
                 f'{y_param_text} vs {x_param_text}',
                 x=0.05,
-                y=0.95,
+                y=0.97,
                 fontsize=18,
                 horizontalalignment='left',
                 verticalalignment='top')
-            fig.text(0.05, 0.91,
+            fig.text(0.05, 0.93,
                      subtitle,
                      fontsize=12,
                      horizontalalignment='left',
                      verticalalignment='top')
             
             for idx in range(1, len(axs)):
+                if not len(files) <= 7:
+                    idx = (idx % ceil(len(files)**0.5), idx // ceil(len(files)**0.5))
                 axs[idx].set_ylabel('')
             
             # Add a common legend in the top right corner outside the subplots
@@ -340,9 +346,14 @@ def plot_data_for_all_agents(
             if output_path:
                 agents_identifier: str = "_".join(abbreviate(key) for key in files.keys())
                 os.makedirs(output_path, exist_ok=True)
-                filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{agents_identifier}_combined.png')
-                plt.savefig(filename)
+                if len(files) <= 7:
+                    filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_{agents_identifier}_combined.svg')
+                else:
+                    filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_grid.svg')
+                    fig.subplots_adjust(left=0.06, bottom=0.1, right=0.98, top=0.8, wspace=0.05, hspace=0.5)
+                fig.savefig(filename)
                 print(f"Saved plot to {filename}")
+            # fig.tight_layout()
             # plt.show()
             plt.clf()
 
@@ -479,6 +490,31 @@ def parameters_to_color(
     color: tuple[float, float, float] = parameters_to_hsluv(values, value_ranges, hsvluv_ranges)
     return color
 
+def get_exp_label(filepath: str) -> str:
+    """
+    From a given filepath, extract the training mode (disturbed/undisturbed) and the seed as the experiment label
+
+    Args:
+        filepath (str): The path to the experiment folder.
+
+    Returns:
+        str: The experiment label.
+    """
+    if "undisturbed" in filepath:
+        mode = "Undisturbed"
+    elif "disturbed" in filepath:
+        mode = "Disturbed"
+    elif "maxpressure" in filepath:
+        mode = "MaxPressure"
+    else:
+        raise ValueError(f"Unexpected value for mode in filepath: {filepath}")
+    str_seed: str = filepath.split("seed")[-1].split("_")[0]
+    try:
+        seed: int = int(str_seed)
+    except ValueError:
+        raise ValueError(f"Could not extract seed from filepath: {filepath}")
+    return f"{mode}, seed={seed}"
+
 def main():
     # Prompt user to select a file
     # root = tk.Tk()
@@ -486,30 +522,35 @@ def main():
     # filepath = filedialog.askopenfilename(initialdir=r".\data\output_data\tsc\sumo_presslight\sumo1x3")
     # print(filepath)
     
-    filepaths = {
-    # # undisturbed
-        "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
-        "Undisturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
-        "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
-    # # disturbed
-        "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
-        "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
-        "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
-    # maxpressure
-        "MaxPressure": "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
-    }
+    # filepaths = {
+    # # # undisturbed
+    #     "Undisturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed100_eps30_nn32/logger/2024_04_23-15_17_58_BRF.log", # ** 2.
+    #     "Undisturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed200_eps30_nn32/logger/2024_04_23-14_38_23_BRF.log", # *** 1.
+    #     "Undisturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_undisturbed_seed300_eps30_nn32/logger/2024_04_23-12_31_46_BRF.log", # * 3.
+    # # # disturbed
+    #     "Disturbed, seed=100": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed100_eps30_nn32/logger/2024_04_23-16_49_18_BRF.log", # * 3.
+    #     "Disturbed, seed=200": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed200_eps30_nn32/logger/2024_04_23-16_14_35_BRF.log", # *** 1.
+    #     "Disturbed, seed=300": "data/output_data/tsc/sumo_presslight/sumo1x3/exp6_disturbed_seed300_eps30_nn32/logger/2024_04_23-14_01_29_BRF.log", # ** 2.
+    # # maxpressure
+    #     "MaxPressure": "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log",
+    # }
     # from agent_comparison_plots import choose_experiments
     # filepaths = choose_experiments()
     # filepaths["MaxPressure"] = "data/output_data/tsc/sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log"
+    from agent_comparison_plots import choose_experiments
+    basepath = os.path.join("data", "output_data", "tsc") # if necessary, add `os.path.dirname("."), ` to the front of paths
+    list_filepaths = choose_experiments()
+    filepaths: dict[str, str] = {get_exp_label(filepath): filepath for filepath in list_filepaths}
+    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log")
     
     
     plot_data_for_all_agents(
         files=filepaths,
         x_params=["failure chance", "true positive rate", "false positive rate"],
         y_params=["throughput", "travel_time"],
-        y_lims=[(2200, 2900), (60, 200)],
+        y_lims=[(1400, 2900), (60, 300)],
         # y_lims=[(1800, 2900), (60, 280)],
-        output_path=os.path.join("data", "output_data", "tsc", "stats")
+        output_path=os.path.join("data", "output_data", "tsc", "stats2")
     )
 
 if __name__ == '__main__':

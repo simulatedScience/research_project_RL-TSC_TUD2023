@@ -145,8 +145,8 @@ def save_run_info():
     # experiment folder
     file_datetime = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     exp_folder = Registry.mapping['logger_mapping']['path'].path
-    os.makedirs(exp_folder, exist_ok=True)
-    info_file_path = os.path.join(exp_folder, f'{file_datetime}_run_info.md')
+    os.makedirs(os.path.join(exp_folder, 'run_info'), exist_ok=True)
+    info_file_path = os.path.join(exp_folder, 'run_info', f'{file_datetime}_run_info.md')
     with open(info_file_path, 'w') as file:
         file.write(run_info_text)
     print(f"Run info saved at: {info_file_path}")

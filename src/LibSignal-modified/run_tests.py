@@ -79,6 +79,7 @@ class Runner:
             tprs: list = [0.0],
             fprs: list = [0.15],
             num_repetitions: int = 1,
+            min_id: int = 0,
             ):
         logging_level = logging.INFO
         if args.debug:
@@ -95,8 +96,8 @@ class Runner:
             for failure_chance in failure_chances:
                 for tpr in tprs:
                     first_model = True
-                    for run_id in range(num_repetitions):
-                        run_seed: int = np.random.randint(0, 1000)
+                    for run_id in range(min_id, min_id + num_repetitions):
+                        run_seed: int = np.random.randint(0, 100000)
                         Registry.mapping['command_mapping']['setting'].param['failure_chance'] = failure_chance
                         Registry.mapping['command_mapping']['setting'].param['tpr'] = tpr
                         Registry.mapping['command_mapping']['setting'].param['fpr'] = fpr
@@ -162,12 +163,12 @@ if __name__ == '__main__':
     args.__dict__.update(new_args.__dict__)
     test = Runner(args)
     # train
-    # test.run(
-    #     failure_chances=[0.0], # 0.1
-    #     tprs=[1.0], # 0.8
-    #     fprs=[0.0], # 0.3
-    #     num_repetitions=1,
-    # )
+    test.run(
+        failure_chances=[0.0], # 0.1
+        tprs=[1.0], # 0.8
+        fprs=[0.0], # 0.3
+        num_repetitions=3,
+    )
     # tests 5-6 (4*4*4*8=64*8=512 runs)
     # test.run(
     #     failure_chances=[0.15, 0.1, 0.05, 0.0],
@@ -180,7 +181,8 @@ if __name__ == '__main__':
         failure_chances=[0.15, 0.1, 0.05, 0.0],
         tprs=[0.6, 0.8, 0.95, 1.0],
         fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=20,
+        num_repetitions=330,
+        min_id=70,
     )
     end_time = time.time()
     print(f"Total time taken: {end_time - start_time}")

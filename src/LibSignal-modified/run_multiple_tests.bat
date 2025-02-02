@@ -14,15 +14,15 @@ FOR /D %%D in ("%FOLDER_PATH%\%FILENAME_PREFIX%*") DO (
     SET /A TOTAL+=1
 )
 
-REM --- Loop through directories starting with the prefix ---
+REM --- Loop through directories starting with the prefix and run in parallel ---
 FOR /D %%D in ("%FOLDER_PATH%\%FILENAME_PREFIX%*") DO (
     SET /A COUNTER+=1
     FOR %%I IN (%%D) DO SET LAST_SUBDIR=%%~nxI
-    ECHO Testing agent !COUNTER!/!TOTAL! at directory: !LAST_SUBDIR!
-    python "%PYTHON_SCRIPT%" --prefix "!LAST_SUBDIR!"
-    ECHO Tested: !COUNTER!/!TOTAL! agents
+    ECHO Starting agent !COUNTER!/!TOTAL! at directory: !LAST_SUBDIR!
+    start "Agent: !LAST_SUBDIR!" cmd /k python "%PYTHON_SCRIPT%" --prefix "!LAST_SUBDIR!"
+    ECHO Started process for agent: !COUNTER!/!TOTAL!
     ECHO ===================================================================
 )
 
-ECHO Done
+ECHO All processes started. Check individual process outputs for completion.
 pause
