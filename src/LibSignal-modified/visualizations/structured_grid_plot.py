@@ -1,351 +1,17 @@
-"""
-This module enhances the plotting functionality of test_data_plotting_combined.py
-to create a structured grid layout with undisturbed agents on the left, 
-disturbed agents on the right, and title, legend and MaxPressure plot in the middle.
-
-Author: Claude & Sebastian Jost (2025-03-16)
-"""
 
 import os
 from math import floor, ceil
-import re
 
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplcolors
-import matplotlib.gridspec as gridspec
-import matplotlib.patches as patches
 import numpy as np
 import hsluv
 from pandas.plotting import parallel_coordinates
 
-# Import the necessary functions from the original module
-from test_data_plotting_combined import (
-    plot_averaged_data_with_range, read_and_group_test_data, 
-    experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
-)
+from data_reader import read_and_group_test_data, experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
+from test_data_plotting_combined import plot_averaged_data_with_range, get_exp_label
 
-
-def create_structured_grid_plot(
-        files: dict[str, str],
-        x_param: str,
-        y_param: str,
-        y_lim: tuple[float, float],
-        output_path: str = None,
-        ):
-    """
-    Create a structured grid plot with undisturbed agents on the left, 
-    disturbed agents on the right, and title, legend, and MaxPressure plot in the middle.
-    
-    Args:
-        files (dict): Dictionary mapping agent labels to filepaths.
-        x_param (str): The parameter for the x-axis.
-        y_param (str): The parameter for the y-axis.
-        y_lim (tuple): Y-axis limits.
-        output_path (str): Path to save the output plot.
-    """
-    # Sort files into undisturbed and disturbed groups
-    undisturbed_files = {k: v for k, v in files.items() if "Undisturbed" in k}
-    disturbed_files = {k: v for k, v in files.items() if "Disturbed" in k}
-    maxpressure_file = {k: v for k, v in files.items() if "MaxPressure" in k}
-    
-    # Check that we have files for all categories
-    if not undisturbed_files:
-        print("Warning: No undisturbed files found")
-    if not disturbed_files:
-        print("Warning: No disturbed files found")
-    if not maxpressure_file:
-        print("Warning: No MaxPressure file found")
-    
-    # Parameters for the grid
-    n_undisturbed = len(undisturbed_files)
-    n_disturbed = len(disturbed_files)
-    n_rows = max(ceil(n_undisturbed/2), ceil(n_disturbed/2))
-    
-    # Create the figure and gridspec
-    fig = plt.figure(figsize=(18, 12))
-    gs = gridspec.GridSpec(n_rows, 5, width_ratios=[1, 1, 1, 1, 1], height_ratios=[1]*n_rows)
-    
-    # Add a common super title
-    x_param_text = x_param.replace('_', ' ')
-    y_param_text = y_param.replace('_', ' ')
-    
-    # Get experiment info from the first file (assuming all files are from the same experiment)
-    first_filepath = next(iter(files.values()))
-    exp_path = first_filepath.rsplit('/logger/', 1)[0]
-    sim, method, network, exp_name = exp_config_from_path(exp_path, convert_network=True)
-    
-    # Dictionary to hold the axes for each subplot
-    all_axes = {}
-    first_plot_done = False
-    
-    # Create outline rectangles for undisturbed and disturbed sections
-    # Making them larger to fully encompass the plots
-    undisturbed_rect_ax = fig.add_subplot(gs[:, 0:2], frameon=False)
-    undisturbed_rect_ax.set_xticks([])
-    undisturbed_rect_ax.set_yticks([])
-    undisturbed_rect = patches.Rectangle((-0.05, -0.05), 1.1, 1.1, linewidth=1, 
-                                         edgecolor='#cccccc', facecolor='none', 
-                                         transform=undisturbed_rect_ax.transAxes)
-    undisturbed_rect_ax.add_patch(undisturbed_rect)
-    undisturbed_rect_ax.text(0.5, 1.02, "Undisturbed Agents", 
-                             transform=undisturbed_rect_ax.transAxes,
-                             fontsize=14, ha='center', va='bottom')
-    
-    disturbed_rect_ax = fig.add_subplot(gs[:, 3:5], frameon=False)
-    disturbed_rect_ax.set_xticks([])
-    disturbed_rect_ax.set_yticks([])
-    disturbed_rect = patches.Rectangle((-0.05, -0.05), 1.1, 1.1, linewidth=1, 
-                                       edgecolor='#cccccc', facecolor='none', 
-                                       transform=disturbed_rect_ax.transAxes)
-    disturbed_rect_ax.add_patch(disturbed_rect)
-    disturbed_rect_ax.text(0.5, 1.02, "Disturbed Agents", 
-                           transform=disturbed_rect_ax.transAxes,
-                           fontsize=14, ha='center', va='bottom')
-    
-    # Create a list to collect all legend lines and labels
-    all_legend_lines = []
-    all_legend_labels = []
-
-    # Process undisturbed files (left side)
-    undisturbed_files_sorted = sorted(undisturbed_files.items(), 
-                                     key=lambda x: int(re.search(r'seed=(\d+)', x[0]).group(1)))
-    
-    for idx, (label, filepath) in enumerate(undisturbed_files_sorted):
-        row = idx // 2
-        col = idx % 2
-        
-        # Create axis
-        ax = fig.add_subplot(gs[row, col])
-        all_axes[(row, col)] = ax
-        
-        # Read data
-        exp_path = filepath.rsplit('/logger/', 1)[0]
-        data = read_and_group_test_data(filepath)
-        
-        # Extract seed number for simplified label
-        seed_match = re.search(r'seed=(\d+)', label)
-        seed_num = seed_match.group(1) if seed_match else "Unknown"
-        simplified_label = f"seed={seed_num}"
-        
-        # Plot data
-        legend_labels, legend_lines = plot_averaged_data_with_range(
-            data,
-            x_param,
-            y_param,
-            exp_path=exp_path,
-            ax=ax,
-            y_lim=y_lim,
-            min_max=None,
-            show_labels=False,  # Hide all labels, we'll add common ones later
-            show_legend_and_title=False,
-            save_plot=False,
-        )
-        
-        # Store all legend entries from first plot with data
-        if not all_legend_labels and legend_labels:
-            all_legend_labels = legend_labels
-            all_legend_lines = legend_lines
-        
-        # Set title as seed number
-        ax.set_title(simplified_label, fontsize=10)
-        
-        # Hide tick labels except for leftmost and bottom plots
-        if col != 0:
-            ax.set_yticklabels([])
-        if row != n_rows-1:
-            ax.set_xticklabels([])
-
-    # Process disturbed files (right side)
-    disturbed_files_sorted = sorted(disturbed_files.items(), 
-                                   key=lambda x: int(re.search(r'seed=(\d+)', x[0]).group(1)))
-    
-    for idx, (label, filepath) in enumerate(disturbed_files_sorted):
-        row = idx // 2
-        col = idx % 2 + 3  # Start from column 3
-        
-        # Create axis
-        ax = fig.add_subplot(gs[row, col])
-        all_axes[(row, col)] = ax
-        
-        # Read data
-        exp_path = filepath.rsplit('/logger/', 1)[0]
-        data = read_and_group_test_data(filepath)
-        
-        # Extract seed number for simplified label
-        seed_match = re.search(r'seed=(\d+)', label)
-        seed_num = seed_match.group(1) if seed_match else "Unknown"
-        simplified_label = f"seed={seed_num}"
-        
-        # Plot data
-        legend_labels, legend_lines = plot_averaged_data_with_range(
-            data,
-            x_param,
-            y_param,
-            exp_path=exp_path,
-            ax=ax,
-            y_lim=y_lim,
-            min_max=None,
-            show_labels=False,  # Hide all labels, we'll add common ones later
-            show_legend_and_title=False,
-            save_plot=False,
-        )
-        
-        # Store all legend entries from first plot with data
-        if not all_legend_labels and legend_labels:
-            all_legend_labels = legend_labels
-            all_legend_lines = legend_lines
-            
-        # Set title as seed number
-        ax.set_title(simplified_label, fontsize=10)
-        
-        # Hide tick labels except for rightmost and bottom plots
-        if col != 4:
-            ax.set_yticklabels([])
-        if row != n_rows-1:
-            ax.set_xticklabels([])
-
-    # Process MaxPressure (middle)
-    if maxpressure_file:
-        # Create the MaxPressure plot in the middle bottom
-        maxp_ax = fig.add_subplot(gs[n_rows-1, 2])
-        all_axes[(n_rows-1, 2)] = maxp_ax
-        
-        maxp_label, maxp_filepath = next(iter(maxpressure_file.items()))
-        exp_path = maxp_filepath.rsplit('/logger/', 1)[0]
-        data = read_and_group_test_data(maxp_filepath)
-        
-        plot_averaged_data_with_range(
-            data,
-            x_param,
-            y_param,
-            exp_path=exp_path,
-            ax=maxp_ax,
-            y_lim=y_lim,
-            min_max=None,
-            show_labels=False,  # Hide all labels, we'll add common ones later
-            show_legend_and_title=False,
-            save_plot=False,
-        )
-        
-        maxp_ax.set_title("MaxPressure", fontsize=10)
-        
-        # Show only x-axis label for bottom plot
-        if row != n_rows-1:
-            maxp_ax.set_xticklabels([])
-        maxp_ax.set_yticklabels([])
-    
-    # Add common legend in the middle section
-    legend_ax = fig.add_subplot(gs[0:n_rows-1, 2], frameon=False)
-    legend_ax.set_xticks([])
-    legend_ax.set_yticks([])
-    
-    # Organize legend items in the way specified: 2 columns, 8+1 rows
-    # with specific grouping for the failure chance parameter
-    if x_param == "failure chance":
-        # For failure chance plots, the legend contains combinations of tpr and fpr
-        params = ["true positive rate", "false positive rate"]
-        values = {
-            "true positive rate": [0.6, 0.7, 0.8, 0.9],
-            "false positive rate": [0.0, 0.15, 0.3, 0.65]
-        }
-    elif x_param == "true positive rate":
-        # For true positive rate plots, the legend contains combinations of fc and fpr
-        params = ["failure chance", "false positive rate"]
-        values = {
-            "failure chance": [0.0, 0.05, 0.1, 0.15],
-            "false positive rate": [0.0, 0.15, 0.3, 0.65]
-        }
-    else:  # x_param == "false positive rate"
-        # For false positive rate plots, the legend contains combinations of fc and tpr
-        params = ["failure chance", "true positive rate"]
-        values = {
-            "failure chance": [0.0, 0.05, 0.1, 0.15],
-            "true positive rate": [0.6, 0.7, 0.8, 0.9]
-        }
-    
-    # Find legend entries that correspond to the parameter combinations
-    grouped_labels = []
-    grouped_lines = []
-    
-    # Add title
-    legend_title = f"Legend for {y_param_text} vs {x_param_text}"
-    
-    # First parameter group (first two values)
-    for val1 in values[params[0]][:2]:
-        for val2 in values[params[1]]:
-            # Find matching label
-            for label, line in zip(all_legend_labels, all_legend_lines):
-                if f"{ABBREVIATIONS[params[0]]}={val1}" in label and f"{ABBREVIATIONS[params[1]]}={val2}" in label:
-                    grouped_labels.append(label)
-                    grouped_lines.append(line)
-                    break
-    
-    # Add a spacer
-    grouped_labels.append("")
-    grouped_lines.append(None)
-    
-    # Second parameter group (second two values)
-    for val1 in values[params[0]][2:]:
-        for val2 in values[params[1]]:
-            # Find matching label
-            for label, line in zip(all_legend_labels, all_legend_lines):
-                if f"{ABBREVIATIONS[params[0]]}={val1}" in label and f"{ABBREVIATIONS[params[1]]}={val2}" in label:
-                    grouped_labels.append(label)
-                    grouped_lines.append(line)
-                    break
-    
-    # Add a spacer
-    grouped_labels.append("")
-    grouped_lines.append(None)
-    
-    # Add FixedTime label last
-    fixedtime_label = next((label for label in all_legend_labels if "FixedTime" in label), None)
-    if fixedtime_label:
-        grouped_labels.append(fixedtime_label)
-        grouped_lines.append(all_legend_lines[all_legend_labels.index(fixedtime_label)])
-    
-    # Create the legend with organized items
-    legend = legend_ax.legend(
-        grouped_lines, 
-        grouped_labels,
-        loc='center',
-        fontsize=10,
-        ncol=2,
-        frameon=True,
-        title=legend_title,
-        title_fontsize=12
-    )
-    
-    # Set the figure title at the top center
-    fig.suptitle(
-        f'{y_param_text} vs {x_param_text}\nSim: {sim}, Network: {network}',
-        fontsize=16,
-        y=0.98
-    )
-    
-    # Add common axis labels
-    fig.text(0.02, 0.5, y_param_text, va='center', rotation='vertical', fontsize=14)
-    fig.text(0.5, 0.02, x_param_text, ha='center', fontsize=14)
-    
-    # Adjust layout
-    plt.tight_layout(rect=[0.03, 0.03, 0.97, 0.95])
-    
-    # Save the figure
-    if output_path:
-        os.makedirs(output_path, exist_ok=True)
-        filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_structured_grid.svg')
-        plt.savefig(filename)
-        print(f"Saved plot to {filename}")
-        
-        # Also save as PNG for easier viewing
-        png_filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_structured_grid.png')
-        plt.savefig(png_filename, dpi=150)
-        print(f"Saved plot to {png_filename}")
-    
-    return fig
-
-
-def plot_data_for_all_metrics(
+def plot_data_for_all_agents(
         files: dict[str, str],
         x_params: list[str],
         y_params: list[str],
@@ -353,82 +19,371 @@ def plot_data_for_all_metrics(
         output_path: str = None,
         ):
     """
-    Create structured grid plots for multiple metrics and parameters.
+    Create a complex grid layout with undisturbed agents on the left, disturbed agents on the right,
+    and a central column with title, legend, and MaxPressure plot.
     
     Args:
-        files (dict): Dictionary mapping agent labels to filepaths.
-        x_params (list): List of parameters for the x-axis.
-        y_params (list): List of performance metrics for the y-axis.
-        y_lims (list): List of y-axis limits for each y_param.
-        output_path (str): Path to save the output plots.
+        files (dict[str, str]): Dictionary mapping agent labels to file paths.
+        x_params (list[str]): List of x-axis parameters to plot.
+        y_params (list[str]): List of y-axis parameters to plot.
+        y_lims (list[tuple[float, float]]): List of y-axis limits for each y_param.
+        output_path (str, optional): Path to save the plots. Defaults to None.
     """
-    for x_param in x_params:
-        for y_param, y_lim in zip(y_params, y_lims):
-            create_structured_grid_plot(
-                files=files,
-                x_param=x_param,
-                y_param=y_param,
-                y_lim=y_lim,
-                output_path=output_path
-            )
-            plt.close()
-
-
-def get_exp_label(filepath: str) -> str:
-    """
-    From a given filepath, extract the training mode (disturbed/undisturbed) and the seed as the experiment label
-
-    Args:
-        filepath (str): The path to the experiment folder.
-
-    Returns:
-        str: The experiment label.
-    """
-    if "undisturbed" in filepath.lower():
-        mode = "Undisturbed"
-    elif "disturbed" in filepath.lower():
-        mode = "Disturbed"
-    elif "maxpressure" in filepath.lower():
-        mode = "MaxPressure"
-    else:
-        raise ValueError(f"Unexpected value for mode in filepath: {filepath}")
+    from matplotlib.gridspec import GridSpec
+    import matplotlib.patches as patches
     
-    # Extract seed number
-    str_seed = "Unknown"
-    match = re.search(r'seed(\d+)', filepath)
-    if match:
-        str_seed = match.group(1)
+    # Separate agents by type
+    undisturbed_files = {k: v for k, v in files.items() if "Undisturbed" in k}
+    disturbed_files = {k: v for k, v in files.items() if "Disturbed" in k}
+    maxpressure_file = {k: v for k, v in files.items() if "MaxPressure" in k}
     
-    return f"{mode}, seed={str_seed}"
-
-
+    # Get a list of files for each type to ensure consistent order
+    undisturbed_items = list(undisturbed_files.items())
+    disturbed_items = list(disturbed_files.items())
+    
+    # Process each parameter combination
+    for y_param, y_lim in zip(y_params, y_lims):
+        for x_param in x_params:
+            # Create figure
+            fig = plt.figure(figsize=(24, 14))
+            
+            # Define grid with 5 columns: 2 for undisturbed, 1 for center, 2 for disturbed
+            gs = GridSpec(6, 5, figure=fig, 
+                          width_ratios=[1, 1, 1.5, 1, 1],  # Make the center column wider
+                          height_ratios=[1, 1, 1, 1, 1, 1],
+                          wspace=0.3, hspace=0.3)  # Increase spacing
+            
+            # Create axes for all the plots
+            # Left side (undisturbed)
+            undisturbed_axes = []
+            for row in range(6):
+                for col in range(2):
+                    ax = fig.add_subplot(gs[row, col])
+                    undisturbed_axes.append(ax)
+                    # Turn off all tick labels initially
+                    ax.tick_params(labelbottom=False, labelleft=False)
+            
+            # Middle column
+            title_ax = fig.add_subplot(gs[0, 2])
+            title_ax.axis('off')
+            
+            legend_ax = fig.add_subplot(gs[1:5, 2])
+            legend_ax.axis('off')
+            
+            maxpressure_ax = fig.add_subplot(gs[5, 2])
+            # Hide y-axis labels for MaxPressure plot
+            maxpressure_ax.tick_params(labelleft=False)
+            
+            # Right side (disturbed)
+            disturbed_axes = []
+            for row in range(6):
+                for col in range(3, 5):
+                    ax = fig.add_subplot(gs[row, col])
+                    disturbed_axes.append(ax)
+                    # Turn off all tick labels initially
+                    ax.tick_params(labelbottom=False, labelleft=False)
+            
+            # All legend items will be collected here
+            all_legend_labels = []
+            all_legend_lines = []
+            
+            # Plot data for undisturbed agents
+            for i, (label, filepath) in enumerate(undisturbed_items):
+                if i >= len(undisturbed_axes):
+                    print(f"Warning: Too many undisturbed agents, skipping {label}")
+                    continue
+                
+                ax = undisturbed_axes[i]
+                exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/")]
+                sample_exp_path = exp_path  # Save for later use
+                data = read_and_group_test_data(filepath)
+                
+                # For the first plot, save all legend items
+                if i == 0:
+                    labels, lines = plot_averaged_data_with_range(
+                        data,
+                        x_param,
+                        y_param,
+                        exp_path=exp_path,
+                        ax=ax,
+                        y_lim=y_lim,
+                        show_labels=False,
+                        show_legend_and_title=False,
+                        save_plot=False,
+                        min_max=None,
+                    )
+                    all_legend_labels = labels
+                    all_legend_lines = lines
+                else:
+                    # For other plots, don't save legend items
+                    plot_averaged_data_with_range(
+                        data,
+                        x_param,
+                        y_param,
+                        exp_path=exp_path,
+                        ax=ax,
+                        y_lim=y_lim,
+                        show_labels=False,
+                        show_legend_and_title=False,
+                        save_plot=False,
+                        min_max=None,
+                    )
+                
+                # Extract seed from label
+                seed = label.split("seed=")[1] if "seed=" in label else ""
+                ax.set_title(f"seed={seed}", fontsize=10)
+                
+                # Show tick labels only on bottom row and leftmost column
+                row = i // 2
+                col = i % 2
+                
+                if row == 5:  # Bottom row
+                    ax.tick_params(labelbottom=True)
+                if col == 0:  # Leftmost column
+                    ax.tick_params(labelleft=True)
+            
+            # Plot data for MaxPressure
+            for label, filepath in maxpressure_file.items():
+                exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/")]
+                data = read_and_group_test_data(filepath)
+                
+                plot_averaged_data_with_range(
+                    data,
+                    x_param,
+                    y_param,
+                    exp_path=exp_path,
+                    ax=maxpressure_ax,
+                    y_lim=y_lim,
+                    show_labels=False,
+                    show_legend_and_title=False,
+                    save_plot=False,
+                    min_max=None,
+                )
+                
+                maxpressure_ax.set_title("MaxPressure", fontsize=10)
+                maxpressure_ax.tick_params(labelbottom=True, labelleft=False)
+            
+            # Plot data for disturbed agents
+            for i, (label, filepath) in enumerate(disturbed_items):
+                if i >= len(disturbed_axes):
+                    print(f"Warning: Too many disturbed agents, skipping {label}")
+                    continue
+                
+                ax = disturbed_axes[i]
+                exp_path = filepath.strip(os.path.basename(filepath))[:-len("logger/")]
+                data = read_and_group_test_data(filepath)
+                
+                plot_averaged_data_with_range(
+                    data,
+                    x_param,
+                    y_param,
+                    exp_path=exp_path,
+                    ax=ax,
+                    y_lim=y_lim,
+                    show_labels=False,
+                    show_legend_and_title=False,
+                    save_plot=False,
+                    min_max=None,
+                )
+                
+                # Extract seed from label
+                seed = label.split("seed=")[1] if "seed=" in label else ""
+                ax.set_title(f"seed={seed}", fontsize=10)
+                
+                # Show tick labels only on bottom row and rightmost column
+                row = i // 2
+                col = i % 2
+                
+                if row == 5:  # Bottom row
+                    ax.tick_params(labelbottom=True)
+                if col == 1:  # Rightmost column
+                    ax.tick_params(labelright=True)
+                    ax.yaxis.set_label_position("right")
+            
+                            # Create reorganized legend with 2 columns
+            if all_legend_labels and all_legend_lines:
+                # Find FixedTime label
+                fixedtime_idx = None
+                for i, label in enumerate(all_legend_labels):
+                    if "FixedTime" in label:
+                        fixedtime_idx = i
+                        break
+                
+                # Extract all label information
+                legend_map = {}
+                for i, label in enumerate(all_legend_labels):
+                    if i == fixedtime_idx:
+                        continue  # Skip FixedTime
+                    
+                    parts = label.split(", ")
+                    if len(parts) == 2:
+                        fc_part = parts[0].split("=")
+                        fpr_part = parts[1].split("=")
+                        
+                        if len(fc_part) == 2 and len(fpr_part) == 2:
+                            fc = float(fc_part[1])
+                            fpr = float(fpr_part[1])
+                            legend_map[(fc, fpr)] = (label, all_legend_lines[i])
+                
+                # Define the exact order we want based on the image
+                # The order should be:
+                # Column 1: [fc=0.0, fpr=0.65], [fc=0.1, fpr=0.65], [fc=0.0, fpr=0.3], [fc=0.1, fpr=0.3], etc.
+                # Column 2: [fc=0.05, fpr=0.65], [fc=0.15, fpr=0.65], [fc=0.05, fpr=0.3], [fc=0.15, fpr=0.3], etc.
+                
+                fc_order = [0.0, 0.1, 0.05, 0.15] # First two for left column, last two for right column
+                fpr_order = [0.65, 0.3, 0.15, 0.0] # Brightest to darkest
+                
+                # Build new legend layout
+                new_labels = []
+                new_lines = []
+                
+                # Loop through fpr values (controls brightness)
+                for fpr in fpr_order:
+                    # Left column: fc=0.0
+                    if (0.0, fpr) in legend_map:
+                        new_labels.append(legend_map[(0.0, fpr)][0])
+                        new_lines.append(legend_map[(0.0, fpr)][1])
+                    else:
+                        new_labels.append("")
+                        new_lines.append(plt.Line2D([], [], alpha=0))
+                    
+                    # Right column: fc=0.05
+                    if (0.05, fpr) in legend_map:
+                        new_labels.append(legend_map[(0.05, fpr)][0])
+                        new_lines.append(legend_map[(0.05, fpr)][1])
+                    else:
+                        new_labels.append("")
+                        new_lines.append(plt.Line2D([], [], alpha=0))
+                
+                # Spacing row
+                new_labels.append("")
+                new_labels.append("")
+                new_lines.append(plt.Line2D([], [], alpha=0))
+                new_lines.append(plt.Line2D([], [], alpha=0))
+                
+                # Loop through fpr values again for the second group
+                for fpr in fpr_order:
+                    # Left column: fc=0.1
+                    if (0.1, fpr) in legend_map:
+                        new_labels.append(legend_map[(0.1, fpr)][0])
+                        new_lines.append(legend_map[(0.1, fpr)][1])
+                    else:
+                        new_labels.append("")
+                        new_lines.append(plt.Line2D([], [], alpha=0))
+                    
+                    # Right column: fc=0.15
+                    if (0.15, fpr) in legend_map:
+                        new_labels.append(legend_map[(0.15, fpr)][0])
+                        new_lines.append(legend_map[(0.15, fpr)][1])
+                    else:
+                        new_labels.append("")
+                        new_lines.append(plt.Line2D([], [], alpha=0))
+                
+                # Add FixedTime in the correct position (row 9, column 1)
+                if fixedtime_idx is not None:
+                    # Add empty line before FixedTime
+                    new_labels.append("")
+                    new_labels.append("")
+                    new_lines.append(plt.Line2D([], [], alpha=0))
+                    new_lines.append(plt.Line2D([], [], alpha=0))
+                    
+                    # Add FixedTime in the left column
+                    new_labels.append(all_legend_labels[fixedtime_idx])
+                    # Empty slot in right column
+                    new_labels.append("")
+                    new_lines.append(all_legend_lines[fixedtime_idx])
+                    new_lines.append(plt.Line2D([], [], alpha=0))
+                
+                # Create the legend
+                legend = legend_ax.legend(
+                    new_lines, new_labels,
+                    loc='center',
+                    ncol=2,
+                    fontsize=10,
+                    frameon=True,
+                    columnspacing=1.5,
+                    handletextpad=1.0,
+                    labelspacing=0.8
+                )
+            
+            # Add title and global labels
+            x_param_text = x_param.replace('_', ' ')
+            y_param_text = y_param.replace('_', ' ')
+            
+            if sample_exp_path:
+                sim, method, network, exp_name = exp_config_from_path(sample_exp_path, convert_network=True)
+                subtitle = f"Sim: {sim}, Network: {network}"
+                
+                title_ax.text(0.5, 0.8, f'{y_param_text} vs {x_param_text}',
+                             fontsize=16, ha='center', va='center')
+                title_ax.text(0.5, 0.6, subtitle,
+                             fontsize=12, ha='center', va='center')
+            
+            # Add section headers - position closer to the plots
+            fig.text(0.25, 0.96, "Undisturbed", fontsize=14, ha='center')
+            fig.text(0.75, 0.96, "Disturbed", fontsize=14, ha='center')
+            
+            # Add global axis labels - position closer to the plots
+            fig.text(0.025, 0.5, y_param_text, fontsize=14, rotation=90, ha='center', va='center')
+            fig.text(0.5, 0.02, x_param_text, fontsize=14, ha='center', va='center')
+            
+            # Create larger rectangular outlines around agent groups with more padding
+            if undisturbed_axes:
+                # Get the position of the first and last subplot
+                first_pos = undisturbed_axes[0].get_position()
+                last_pos = undisturbed_axes[-1].get_position()
+                
+                # Add extra padding to avoid intersecting with labels
+                padding = 0.03
+                undisturbed_rect = patches.Rectangle(
+                    (first_pos.x0 - padding, last_pos.y0 - padding),
+                    (undisturbed_axes[1].get_position().x1 - first_pos.x0) + 2*padding,
+                    (first_pos.y1 - last_pos.y0) + 2*padding,
+                    linewidth=1, edgecolor='#cccccc', facecolor='none',
+                    transform=fig.transFigure, zorder=-1  # Set lower zorder so it's behind the plots
+                )
+                fig.patches.append(undisturbed_rect)
+            
+            if disturbed_axes:
+                # Get the position of the first and last subplot
+                first_pos = disturbed_axes[0].get_position()
+                last_pos = disturbed_axes[-1].get_position()
+                
+                # Add extra padding to avoid intersecting with labels
+                padding = 0.03
+                disturbed_rect = patches.Rectangle(
+                    (first_pos.x0 - padding, last_pos.y0 - padding),
+                    (disturbed_axes[1].get_position().x1 - first_pos.x0) + 2*padding,
+                    (first_pos.y1 - last_pos.y0) + 2*padding,
+                    linewidth=1, edgecolor='#cccccc', facecolor='none',
+                    transform=fig.transFigure, zorder=-1  # Set lower zorder so it's behind the plots
+                )
+                fig.patches.append(disturbed_rect)
+            
+            # Save the plot
+            if output_path:
+                os.makedirs(output_path, exist_ok=True)
+                filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_new_layout.svg')
+                fig.savefig(filename)
+                print(f"Saved plot to {filename}")
+            
+            plt.close(fig)
+                
 def main():
     from agent_comparison_plots import choose_experiments
-    basepath = os.path.join("data", "output_data", "tsc")
+    basepath = os.path.join("data", "output_data", "tsc") # if necessary, add `os.path.dirname("."), ` to the front of paths
     list_filepaths = choose_experiments()
+    filepaths: dict[str, str] = {get_exp_label(filepath): filepath for filepath in list_filepaths}
+    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log")
     
-    # Get experiment labels
-    filepaths = {get_exp_label(filepath): filepath for filepath in list_filepaths}
-    
-    # Add MaxPressure
-    filepaths["MaxPressure"] = os.path.join(
-        basepath, 
-        "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log"
-    )
-    
-    # Create the output directory if it doesn't exist
-    output_path = os.path.join("data", "output_data", "tsc", "structured_plots")
-    os.makedirs(output_path, exist_ok=True)
-    
-    # Plot all metrics and parameters
-    plot_data_for_all_metrics(
+    # Replace the existing plot_data_for_all_agents call with the new function
+    plot_data_for_all_agents(
         files=filepaths,
         x_params=["failure chance", "true positive rate", "false positive rate"],
         y_params=["throughput", "travel_time"],
         y_lims=[(1400, 2900), (60, 300)],
-        output_path=output_path
+        output_path=os.path.join("data", "output_data", "tsc", "structured_plots")
     )
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
