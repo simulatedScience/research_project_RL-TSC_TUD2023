@@ -182,7 +182,8 @@ class DirectorySelectorApp(tk.Tk):
             bg="#5e5e5e", fg="#ffffff", activebackground="#7e7e7e",
             activeforeground="#ffffff", relief=tk.FLAT, bd=0
         )
-        self.select_button.pack(pady=5)
+        # stretch to fill space
+        self.select_button.pack(fill=tk.X, padx=10, pady=10)
     
     def populate_listbox(self):
         try:
