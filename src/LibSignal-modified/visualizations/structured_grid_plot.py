@@ -272,7 +272,7 @@ def add_titles_and_labels(fig, axs_dict, x_param, y_param, exp_path=None):
         subtitle = f"Sim: {sim}, Network: {network}"
         
         axs_dict['title'].text(0.5, 0.8, f'{y_param_text} vs {x_param_text}',
-                     fontsize=16, ha='center', va='center')
+                     fontsize=16, ha='center', va='center'), fontweight='bold'
         axs_dict['title'].text(0.5, 0.6, subtitle,
                      fontsize=12, ha='center', va='center')
     
