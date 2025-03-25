@@ -60,7 +60,7 @@ def plot_averaged_data_with_range(
         print("Added subplot")
         
     
-    legend_lines = []
+    legend_mapping = {}
     legend_labels = []
     
     # Define the parameter ranges
@@ -134,34 +134,18 @@ def plot_averaged_data_with_range(
             noise_ranges_for_color,
             hsluv_ranges
         )
-        # if other_params[0] == "tpr":
-        #     # swap tpr and fpr
-        #     noise_settings["tpr"], noise_settings["fpr"] = noise_settings["fpr"], noise_settings["tpr"]
-        #     noise_ranges["tpr"], noise_ranges["fpr"] = noise_ranges["fpr"], noise_ranges["tpr"]
-        # noise_colors = {
-        #     "failure chance": color[0],
-        #     "true positive rate": color[1],
-        #     "false positive rate": color[2],
-        # }
-        # color = (color[0], color[1], x_param_color)
-        # color = (
-        #     noise_colors['failure chance'],
-        #     noise_colors['true positive rate'],
-        #     noise_colors['false positive rate'],
-        # )
-        # color = mplcolors.hsv_to_rgb(color)
 
         if min_max is not None:
             ax.fill_between(x_values, min_values, max_values, color=color, alpha=0.2)
         line, = ax.plot(x_values, avg_values, 'o-', label=label, color=color)
-        legend_lines.append(line)
+        legend_mapping[label] = line
         legend_labels.append(label)
     
     # add reference line for fixedtime
     fixedtime_label = 'FixedTime 30s'
     fixedtime_data = get_fixedtime_data()
     fixedtime_line = ax.axhline(y=fixedtime_data[y_param], color='black', linestyle='--', alpha=0.5, label=fixedtime_label)
-    legend_lines.append(fixedtime_line)
+    legend_mapping[fixedtime_label] = fixedtime_line
     legend_labels.append(fixedtime_label)
 
     # replace underscores with spaces
@@ -174,18 +158,11 @@ def plot_averaged_data_with_range(
 
 
     # Reordering the legend entries for row-first filling
-    num_cols = 4
-    # if x_param in ("false positive rate", ):
-    #     legend_labels.insert(num_cols, legend_labels.pop(-1))
-    #     legend_lines.insert(num_cols, legend_lines.pop(-1))
-    #     reordered_labels = legend_labels
-    #     reordered_lines = legend_lines
-    # elif x_param in ("failure chance", "true positive rate"): # transpose legend
+    num_cols = 4 # WARNING: this code is only intended for the case with exactly 4 values per parameter (=> 4x4x4 grid search)
     reordered_labels = [legend_labels[i::num_cols] for i in range(num_cols)] # sort list into table
     reordered_labels = [label for sublist in reordered_labels for label in sublist] # flatten list
-    reordered_lines = [legend_lines[legend_labels.index(label)] for label in reordered_labels] # reorder lines to match labels
-    # else:
-    #     raise ValueError(f"Eunexpected value encountered for x_param: {x_param}. Expected one of ('failure chance', 'true positive rate', 'false positive rate')")
+    reordered_lines = [legend_mapping[label] for label in reordered_labels] # get lines from dictionary mapping
+    
     if show_labels:
         ax.set_xlabel(x_param_text)
         ax.set_ylabel(y_param_text)

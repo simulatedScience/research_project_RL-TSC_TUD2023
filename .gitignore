@@ -25,3 +25,9 @@ src/gym_intro/*
 # includsions of otherwise ignored files
 !presentation/RL TSC presentation_SJ_TUD2023.pdf
 /new_rl_tsc_paper
+src/LibSignal-modified/output/plots/tpr_tp_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
+src/LibSignal-modified/output/plots/tpr_d_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
+src/LibSignal-modified/output/plots/fpr_tp_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
+src/LibSignal-modified/output/plots/fpr_d_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
+src/LibSignal-modified/output/plots/fc_tp_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
+src/LibSignal-modified/output/plots/fc_d_Undisturbed,_seed=200_Disturbed,_seed=100_MaxPressure_combined.png
