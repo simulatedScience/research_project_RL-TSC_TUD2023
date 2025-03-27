@@ -350,7 +350,7 @@ def plot_data_for_all_agents(
                 x_param_text: str = x_param.replace("_", " ")
                 y_param_text: str = y_param.replace("_", " ")
                 os.makedirs(output_path, exist_ok=True)
-                filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_new_layout.svg')
+                filename = os.path.join(output_path, f'{ABBREVIATIONS[x_param_text]}_{ABBREVIATIONS[y_param_text]}_grid.svg')
                 fig.savefig(filename)
                 print(f"Saved plot to {filename}")
             
