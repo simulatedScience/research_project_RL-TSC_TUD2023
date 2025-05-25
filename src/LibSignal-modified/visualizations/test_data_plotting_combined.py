@@ -22,8 +22,6 @@ import hsluv
 # Assuming these are correctly defined in data_reader or globally
 from data_reader import read_and_group_test_data, experiment_name, exp_config_from_path, ABBREVIATIONS, get_fixedtime_data
 
-# --- plot_averaged_data_with_range remains the same ---
-# (It already plots data for one 'set' - previously one agent, now one category)
 def plot_averaged_data_with_range(
         segregated_data: dict,
         x_param: str,
@@ -57,8 +55,8 @@ def plot_averaged_data_with_range(
         (list[str]): List of labels for the legend.
         (list[plt.Line2D]): List of lines for the legend.
     """
-    # This function now receives data that might be averaged across seeds OR just from one run (like MaxPressure)
-    # The core logic remains the same: compute first-level averages (if not already done), segregate, plot lines.
+    # This function receives data that might be averaged across seeds OR just from one run (like MaxPressure)
+    # compute first-level averages (if not already done), segregate, plot lines.
 
     # If the input `segregated_data` is raw (dict keyed by noise tuple), compute averages.
     # If it's already averaged (list of dicts), use it directly.
@@ -76,7 +74,8 @@ def plot_averaged_data_with_range(
         print(f"Warning: Unexpected or empty data format for plotting {y_param} vs {x_param}. Skipping.")
         return [], []
 
-    segregated_by_plot_lines = segregate_data_by_params(average_data, x_param)
+    segregated_by_plot_lines: dict[tuple[float, float], list[dict]] = segregate_data_by_params(average_data, x_param)
+    segregated_by_plot_lines = dict(sorted(segregated_by_plot_lines.items()))
 
     if ax is None:
         fig = plt.figure(figsize=(8.8 / 1.5, 10 / 1.5)) # Adjust size if needed
@@ -102,7 +101,7 @@ def plot_averaged_data_with_range(
     ]
 
     num_lines = len(segregated_by_plot_lines)
-    num_cols_legend = 4 # Still assume 4 levels for the other params for coloring/legend layout
+    num_cols_legend = 4 # assume 4 levels for the other params for coloring/legend layout
 
     for idx, (key, group) in enumerate(segregated_by_plot_lines.items()):
         if not group: continue # Skip empty groups
@@ -544,7 +543,7 @@ def plot_comparison_figures(
             if output_path:
                 os.makedirs(output_path, exist_ok=True)
                 # Simplified filename for the 3-plot comparison
-                filename = os.path.join(output_path, f'{ABBREVIATIONS.get(x_param_text, x_param_text)}_{ABBREVIATIONS.get(y_param_text, y_param_text)}_averaged.png')
+                filename = os.path.join(output_path, f'{ABBREVIATIONS.get(x_param_text, x_param_text)}_{ABBREVIATIONS.get(y_param_text, y_param_text)}_averaged.svg')
                 fig.savefig(filename)
                 print(f"Saved comparison plot to {filename}")
 
