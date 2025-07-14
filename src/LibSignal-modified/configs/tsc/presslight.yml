@@ -2,13 +2,13 @@ includes:
   - configs/tsc/base.yml
 
 world:
-  gui: False # redundant
+  gui: True # redundant
 
 model:
   name: presslight
-  train_model: False
-  test_model: True
-  load_model: True
+  train_model: True
+  test_model: False
+  load_model: False
   d_dense: 128
   epsilon: 0.1
   epsilon_decay: 0.995
