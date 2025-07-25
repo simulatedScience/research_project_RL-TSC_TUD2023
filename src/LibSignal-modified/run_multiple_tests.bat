@@ -2,11 +2,13 @@
 REM --- Variables ---
 SETLOCAL ENABLEDELAYEDEXPANSION
 SET FOLDER_PATH="data\output_data\tsc\sumo_presslight\sumo1x3_synth_uniform"
-SET FILENAME_PREFIX="exp_new_"
+SET FILENAME_PREFIX="exp_25072025_"
 SET PYTHON_SCRIPT="run_tests.py"
 
-REM --- Initialize counter ---
+REM --- Initialize counters ---
+REM --- Counter for the number of agents started ---
 SET COUNTER=0
+REM --- directory count ---
 SET TOTAL=0
 
 REM --- Count the total number of directories ---

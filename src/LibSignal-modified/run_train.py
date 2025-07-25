@@ -174,9 +174,9 @@ if __name__ == '__main__':
     args = parse_args()
     seed = random.randint(0, 1000)
     args = argparse.Namespace(
-        thread_num = 22, # use 8 CPU threads
-        ngpu = 1, # use 1 GPU
-        prefix = f"exp_14072025_disturbed_seed{seed}_eps50_nn128", # exp3_2_undisturbed_100
+        thread_num = 2, # use 4 CPU threads
+        ngpu = 1, # use 0 GPU
+        prefix = f"exp_25072025_undisturbed_seed{seed}_eps100_nn128", # exp3_2_undisturbed_100
         seed = seed, # random seed
         debug = True,
         interface = "libsumo", # use (lib)sumo for simulation
@@ -191,9 +191,9 @@ if __name__ == '__main__':
         # failure_chance = 0., # 0 / .1   # failure_chance,
         # tpr = 1., # 1 / .8   # true positive rate,
         # fpr = 0., # 0 / .15   # false positive rate,
-        failure_chance = 0.1, # 0 / .1   # failure_chance,
-        tpr = 0.8, # 1 / .8   # true positive rate,
-        fpr = 0.15, # 0 / .15   # false positive rate,
+        failure_chance = 0., # 0 / .1   # failure_chance,
+        tpr = 1., # 1 / .8   # true positive rate,
+        fpr = 0., # 0 / .15   # false positive rate,
     )
     test = Runner(args)
     # train with moderate sensor failure rate

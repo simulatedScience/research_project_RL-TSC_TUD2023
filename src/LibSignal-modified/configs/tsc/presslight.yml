@@ -2,7 +2,7 @@ includes:
   - configs/tsc/base.yml
 
 world:
-  gui: True # redundant
+  gui: False # redundant
 
 model:
   name: presslight
