@@ -9,18 +9,30 @@ import sys
 import subprocess
 import tempfile
 import shutil
+import yaml
+import logging
 from typing import Optional, Dict, Any
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
 
 # Add the project root to the path to import LibSignal modules
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
 from common.registry import Registry
+from common import interface
 from world.world_sumo import World
 from agent.maxpressure import MaxPressureAgent
 from agent.presslight import PressLightAgent
+from agent.fixedtime import FixedTimeAgent
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("SUMO-GUI")
 
 
 class SUMOGUIAnimator:
@@ -60,6 +72,7 @@ class SUMOGUIAnimator:
             if os.path.exists(sumo_gui_path):
                 return sumo_gui_path
         
+        logger.error("SUMO-GUI binary not found. Please install SUMO and ensure it's in your PATH.")
         return None
     
     def prepare_config_for_gui(self, config_path: str, agent_type: str, 
@@ -101,6 +114,65 @@ class SUMOGUIAnimator:
         
         return gui_config_path
     
+    def register_command_settings(self, config_path: str, agent_type: str, noise_settings: Optional[Dict] = None):
+        """Register command settings in Registry for agent initialization."""
+        # Load default settings from base and agent configs
+        base_config_path = os.path.join(project_root, "configs", "tsc", "base.yml")
+        agent_config_path = os.path.join(project_root, "configs", "tsc", f"{agent_type}.yml")
+        
+        with open(base_config_path, 'r') as f:
+            base_config = yaml.safe_load(f)
+        
+        try:
+            with open(agent_config_path, 'r') as f:
+                agent_config = yaml.safe_load(f)
+        except FileNotFoundError:
+            logger.warning(f"Agent config file not found: {agent_config_path}")
+            agent_config = {}
+        
+        # Create command settings for Registry
+        cmd_settings = {
+            "command": {
+                "task": "tsc",
+                "agent": agent_type,
+                "world": "sumo",
+                "network": os.path.splitext(os.path.basename(config_path))[0],
+                "prefix": "gui_animation",
+                "seed": 42,
+                "failure_chance": noise_settings.get('failure_chance', 0.0) if noise_settings else 0.0,
+                "tpr": noise_settings.get('true_positive_rate', 1.0) if noise_settings else 1.0,
+                "fpr": noise_settings.get('false_positive_rate', 0.0) if noise_settings else 0.0,
+                "interface": "libsumo",
+                "delay_type": "apx",
+            },
+            "logger": {
+                "path": self.temp_dir,
+                "level": "INFO"
+            },
+            "world": {
+                "world": "sumo",
+                "config_file": config_path,
+                "gui": True,
+                "cityflow": {},
+                "sumocfg": config_path,
+                "roadnetFile": "",
+                "flowFile": "",
+            },
+            "model": {
+                "name": agent_type,
+                "train_model": False,
+                "test_model": True,
+                "load_model": True,
+            }
+        }
+        
+        # Register settings in Registry
+        interface.Command_Setting_Interface(cmd_settings)
+        interface.World_param_Interface(cmd_settings)
+        interface.ModelAgent_param_Interface(cmd_settings)
+        
+        return cmd_settings
+    
     def create_agent(self, agent_type: str, world: World, 
                     noise_settings: Optional[Dict] = None):
         """Create and configure an agent for the simulation."""
@@ -110,10 +182,15 @@ class SUMOGUIAnimator:
             agent = PressLightAgent(world, 0)
             if noise_settings:
                 # Apply noise settings to the agent
-                agent.failure_chance = noise_settings.get('failure_chance', 0.0)
+                agent.FAILURE_CHANCE = noise_settings.get('failure_chance', 0.0)
                 agent.TPR = noise_settings.get('true_positive_rate', 1.0)
                 agent.FPR = noise_settings.get('false_positive_rate', 0.0)
+                # Reload agent's noise configuration to ensure it's properly applied
+                agent.reload_noise_config()
+        elif agent_type == "fixedtime":
+            agent = FixedTimeAgent(world, 0)
         else:
+            logger.error(f"Unknown agent type: {agent_type}")
             raise ValueError(f"Unknown agent type: {agent_type}")
         
         return agent
@@ -131,16 +208,21 @@ class SUMOGUIAnimator:
             simulation_steps (int): Number of simulation steps
         """
         if not self.sumo_binary:
-            messagebox.showerror("Error", 
-                               "SUMO-GUI binary not found. Please install SUMO and ensure it's in your PATH.")
+            logger.error("SUMO-GUI binary not found. Please install SUMO and ensure it's in your PATH.")
             return
         
         try:
             # Prepare GUI config
             gui_config = self.prepare_config_for_gui(config_path, agent_type, noise_settings)
             
-            # Initialize world and agent
+            # Register settings in Registry for agent initialization
+            cmd_settings = self.register_command_settings(gui_config, agent_type, noise_settings)
+            
+            # Initialize Registry for correct agent loading
+            Registry.reset()
             Registry.register("world_mapping", {"setting": Registry})
+            
+            # Initialize world and agent
             world = World(gui_config)
             agent = self.create_agent(agent_type, world, noise_settings)
             
@@ -148,10 +230,8 @@ class SUMOGUIAnimator:
             world.reset()
             agent.reset()
             
-            messagebox.showinfo("Starting Simulation", 
-                              f"Starting SUMO-GUI with {agent_type} agent.\n"
-                              f"The simulation will run for {simulation_steps} steps.\n"
-                              f"Close this dialog to begin.")
+            logger.info(f"Starting SUMO-GUI with {agent_type} agent. The simulation will run for {simulation_steps} steps.")
+            print(f"Starting SUMO-GUI with {agent_type} agent. The simulation will run for {simulation_steps} steps.")
             
             # Run simulation with GUI
             for step in range(simulation_steps):
@@ -167,11 +247,12 @@ class SUMOGUIAnimator:
                 if not world.eng.simulation.getMinExpectedNumber() > 0:
                     break
             
-            messagebox.showinfo("Simulation Complete", 
-                              "Simulation has finished or was closed.")
+            logger.info("Simulation has finished or was closed.")
+            print("Simulation has finished or was closed.")
             
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to run simulation: {str(e)}")
+            logger.error(f"Failed to run simulation: {str(e)}")
+            print(f"Error: Failed to run simulation: {str(e)}")
         finally:
             # Clean up
             self.cleanup()
@@ -182,8 +263,8 @@ class SUMOGUIAnimator:
             try:
                 shutil.rmtree(self.temp_dir)
                 self.temp_dir = None
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Error cleaning up temporary files: {str(e)}")
 
 
 class GUIAnimationDialog:
@@ -193,7 +274,7 @@ class GUIAnimationDialog:
         self.root = tk.Toplevel(parent) if parent else tk.Tk()
         self.root.title("SUMO-GUI Animation")
         self.root.configure(bg="#2e2e2e")
-        self.root.geometry("500x400")
+        self.root.geometry("500x450")
         
         self.animator = SUMOGUIAnimator()
         self.config_path = None
@@ -235,9 +316,28 @@ class GUIAnimationDialog:
         
         self.agent_var = tk.StringVar(value="maxpressure")
         agent_combo = ttk.Combobox(agent_frame, textvariable=self.agent_var,
-                                  values=["maxpressure", "presslight"],
+                                  values=["maxpressure", "presslight", "fixedtime"],
                                   state="readonly")
         agent_combo.pack(fill=tk.X, pady=5)
+        
+        # Model selection
+        model_frame = tk.Frame(self.root, bg="#2e2e2e")
+        model_frame.pack(fill=tk.X, padx=20, pady=5)
+        
+        tk.Label(model_frame, text="Model Directory (optional):", bg="#2e2e2e", fg="#ffffff").pack(anchor=tk.W)
+        
+        model_path_frame = tk.Frame(model_frame, bg="#2e2e2e")
+        model_path_frame.pack(fill=tk.X, pady=5)
+        
+        self.model_path_var = tk.StringVar()
+        model_entry = tk.Entry(model_path_frame, textvariable=self.model_path_var,
+                              bg="#3e3e3e", fg="#ffffff", relief=tk.FLAT)
+        model_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        browse_model_button = tk.Button(model_path_frame, text="Browse",
+                                      command=self.browse_model,
+                                      bg="#5e5e5e", fg="#ffffff", relief=tk.FLAT)
+        browse_model_button.pack(side=tk.RIGHT, padx=(5, 0))
         
         # Noise settings (for presslight agent)
         noise_frame = tk.LabelFrame(self.root, text="Noise Settings (for PressLight)",
@@ -278,9 +378,15 @@ class GUIAnimationDialog:
                               bg="#3e3e3e", fg="#ffffff", relief=tk.FLAT)
         steps_entry.pack(fill=tk.X, pady=5)
         
+        # Status label
+        self.status_var = tk.StringVar(value="Ready")
+        status_label = tk.Label(self.root, textvariable=self.status_var, 
+                               bg="#2e2e2e", fg="#aaaaaa", font=("Arial", 9))
+        status_label.pack(fill=tk.X, padx=20, pady=2)
+        
         # Buttons
         button_frame = tk.Frame(self.root, bg="#2e2e2e")
-        button_frame.pack(fill=tk.X, padx=20, pady=20)
+        button_frame.pack(fill=tk.X, padx=20, pady=10)
         
         start_button = tk.Button(button_frame, text="Start Animation",
                                 command=self.start_animation,
@@ -305,7 +411,6 @@ class GUIAnimationDialog:
     
     def browse_config(self):
         """Browse for a config file."""
-        from tkinter import filedialog
         config_path = filedialog.askopenfilename(
             title="Select SUMO Config File",
             filetypes=[("Config files", "*.cfg"), ("All files", "*.*")]
@@ -313,11 +418,19 @@ class GUIAnimationDialog:
         if config_path:
             self.config_path_var.set(config_path)
     
+    def browse_model(self):
+        """Browse for a model directory."""
+        model_path = filedialog.askdirectory(
+            title="Select Model Directory"
+        )
+        if model_path:
+            self.model_path_var.set(model_path)
+    
     def start_animation(self):
         """Start the GUI animation."""
         config_path = self.config_path_var.get()
         if not config_path or not os.path.exists(config_path):
-            messagebox.showerror("Error", "Please select a valid config file.")
+            self.status_var.set("Error: Please select a valid config file.")
             return
         
         agent_type = self.agent_var.get()
@@ -332,6 +445,10 @@ class GUIAnimationDialog:
             }
         
         simulation_steps = self.steps_var.get()
+        
+        # Update status
+        self.status_var.set(f"Starting animation with {agent_type} agent...")
+        self.root.update()
         
         # Start animation in a separate thread to prevent GUI freezing
         import threading

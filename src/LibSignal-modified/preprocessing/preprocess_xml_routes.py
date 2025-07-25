@@ -76,41 +76,69 @@ def split_vehicles_by_spawn_and_despawn(
     return invalid_spawn, invalid_despawn, valid_spawn, valid_despawn
 
 
-def extract_extensions(
-    source_vehicles: list[ET.Element],
-    is_spawn: bool
-) -> dict[str, list[list[str]]]:
+def extract_extensions_despawn(
+        source_vehicles: list[ET.Element],
+    ) -> dict[str, list[list[str]]]:
     """
-    Extract route extensions from valid spawn or despawn vehicles.
+    Extract route extensions from valid despawn vehicles:
+    For each interior edge, collect valid routes from that edge to an outgoing one as a list of edges.
 
     Args:
-        source_vehicles (list[ET.Element]): Vehicles that are valid for spawn (incoming) or despawn (outgoing).
-        is_spawn (bool): True to extract extensions after spawn (suffix), False for before despawn (prefix).
+        source_vehicles (list[ET.Element]): Vehicles that are valid for despawn (outgoing).
 
     Returns:
-        Mapping from edge ID to a list of extensions (list of edge sequences).
+        (dict[str, list[list[str]]]): Mapping from edge ID to a list of valid extensions (list of edge sequences).
     """
-    extensions: dict[str, list[list[str]]] = {}
+    extensions_map: dict[str, list[list[str]]] = {}
     for veh in source_vehicles:
         # Extract the route edges from the vehicle element
         route = veh.find('route').get('edges').split()
-        key_edge = route[0] if is_spawn else route[-1]
-        if is_spawn:
-            ext = route[1:]
-        else:
-            ext = route[:-1]
-        if not ext:
-            continue
-        # Store the extension in the dictionary:
-        # key_edge is the edge where the extension applies,
-        # and ext is the list of edges to be added.
-        extensions.setdefault(key_edge, []).append(ext)
-    print(f"\nExtracted extension for {len(extensions)} interior {'spawn' if is_spawn else 'despawn'} edges.")
-    for edge, exts in extensions.items():
-        n_unique = len(set(tuple(ext) for ext in exts))
-        print(f"Edge {edge:>13} has {len(exts):>3} extensions with {n_unique:>2} unique combinations.")
-    return extensions
+        for i, key_edge in enumerate(route[:-1]):
+            # Get the remaining edges after the key edge
+            remaining_route = route[i + 1:]
+            # Store the extension in the dictionary:
+            # key_edge is an interior edge,
+            # values are a list of other edges that lead to an outgoing edge.
+            if not key_edge in extensions_map:
+                extensions_map[key_edge] = []
+            extensions_map[key_edge].append(remaining_route)
+    print(f"\nExtracted extension for {len(extensions_map)} interior despawn edges.")
+    for edge, extensions in extensions_map.items():
+        n_unique = len(set(tuple(ext) for ext in extensions))
+        print(f"Edge {edge:>13} has {len(extensions):>3} extensions with {n_unique:>2} unique combinations.")
+    return extensions_map
 
+def extract_extensions_spawn(
+        source_vehicles: list[ET.Element],
+    ) -> dict[str, list[list[str]]]:
+    """
+    Extract route extensions from valid spawn vehicles:
+    For each interior edge, collect valid routes from an incoming one to that edge as a list of edges.
+    
+    Args:
+        source_vehicles (list[ET.Element]): Vehicles that are valid for spawn (incoming).
+    
+    Returns:
+        (dict[str, list[list[str]]]): Mapping from edge ID to a list of valid extensions (list of edge sequences).
+    """
+    extensions_map: dict[str, list[list[str]]] = {}
+    for veh in source_vehicles:
+        # Extract the route edges from the vehicle element
+        route = veh.find('route').get('edges').split()
+        for i, key_edge in enumerate(route[1:], start=1):
+            # Get the remaining edges before the key edge
+            remaining_route = route[:i]
+            # Store the extension in the dictionary:
+            # key_edge is an interior edge,
+            # values are a list of other edges that lead to an incoming edge.
+            if not key_edge in extensions_map:
+                extensions_map[key_edge] = []
+            extensions_map[key_edge].append(remaining_route)
+    print(f"\nExtracted extension for {len(extensions_map)} interior spawn edges.")
+    for edge, extensions in extensions_map.items():
+        n_unique = len(set(tuple(ext) for ext in extensions))
+        print(f"Edge {edge:>13} has {len(extensions):>3} extensions with {n_unique:>2} unique combinations.")
+    return extensions_map
 
 def fix_routes(
     invalid_spawn: list[ET.Element],
@@ -128,28 +156,34 @@ def fix_routes(
         despawn_exts (dict[str, list[list[str]]]): Mapping from despawn edges to despawn extensions.
     """
     # randomly extend the start of the route for invalid spawn vehicles.
-    for veh in invalid_spawn:
-        route_elem = veh.find('route')
+    extend_spawn_count: int = 0
+    extend_despawn_count: int = 0
+    for vehicle in invalid_spawn:
+        route_elem = vehicle.find('route')
         edges = route_elem.get('edges').split()
         spawn_edge = edges[0]
-        exts = spawn_exts.get(spawn_edge)
-        if exts:
-            choice = random.choice(exts)
-            new_edges = edges + choice
+        extensions = spawn_exts.get(spawn_edge)
+        if extensions:
+            added_edges = random.choice(extensions)
+            # add new edges to the start of the route
+            new_edges = added_edges + edges
             route_elem.set('edges', ' '.join(new_edges))
-            print(f"Extended spawn route for vehicle {veh.get('id')} with edges: {new_edges}")
+            extend_spawn_count += 1
+            # print(f"Extended spawn route for vehicle {vehicle.get('id')} with {len(added_edges)} edges.")
     # randomly extend the end of the route for invalid despawn vehicles.
-    for veh in invalid_despawn:
-        route_elem = veh.find('route')
+    for vehicle in invalid_despawn:
+        route_elem = vehicle.find('route')
         edges = route_elem.get('edges').split()
         despawn_edge = edges[-1]
-        exts = despawn_exts.get(despawn_edge)
-        if exts:
-            choice = random.choice(exts)
-            new_edges = choice + edges
+        extensions = despawn_exts.get(despawn_edge)
+        if extensions:
+            added_edges = random.choice(extensions)
+            # add new edges to the end of the route
+            new_edges = edges + added_edges
             route_elem.set('edges', ' '.join(new_edges))
-            print(f"Extended despawn route for vehicle {veh.get('id')} with edges: {new_edges}")
-
+            extend_despawn_count += 1
+            # print(f"Extended despawn route for vehicle {vehicle.get('id')} with {len(added_edges)} edges.")
+    print(f"\nExtended {extend_spawn_count} spawn routes and {extend_despawn_count} despawn routes with randomized extensions.")
 
 def process_routes(
     input_file: str,
@@ -169,8 +203,8 @@ def process_routes(
     invalid_spawn, invalid_despawn, valid_spawn, valid_despawn = \
         split_vehicles_by_spawn_and_despawn(tree, incoming, outgoing)
 
-    spawn_exts = extract_extensions(valid_spawn, is_spawn=True)
-    despawn_exts = extract_extensions(valid_despawn, is_spawn=False)
+    spawn_exts = extract_extensions_spawn(valid_spawn)
+    despawn_exts = extract_extensions_despawn(valid_despawn)
 
     fix_routes(invalid_spawn, invalid_despawn, spawn_exts, despawn_exts)
 

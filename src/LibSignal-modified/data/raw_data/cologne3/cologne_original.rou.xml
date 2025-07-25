@@ -121,9 +121,9 @@
     <vehicle arrival="25566.00" depart="25244.00" id="161841_421_0" type="pkw">
         <route edges="31864804 200818108#0 4999331#0"/>
     </vehicle>
-    <!-- <vehicle arrival="25757.00" depart="25244.00" id="140163_414_0" type="pkw">
+    <vehicle arrival="25757.00" depart="25244.00" id="140163_414_0" type="pkw">
         <route edges="241660955#13 -241660955#13 -41910184"/>
-    </vehicle> -->
+    </vehicle>
     <vehicle arrival="32289.00" depart="25248.00" id="137478_412_0" type="pkw">
         <route edges="4045330 241660955#11 241660955#13 241660955#14 241660955#17"/>
     </vehicle>
