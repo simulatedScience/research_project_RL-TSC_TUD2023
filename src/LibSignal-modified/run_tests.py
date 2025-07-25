@@ -1,7 +1,7 @@
-import task
-import trainer
-import agent
-import dataset
+# import task
+# import trainer
+# import agent
+# import dataset
 from common.registry import Registry
 from common import interface
 from common.utils import *
@@ -145,6 +145,8 @@ if __name__ == '__main__':
         # prefix = "exp6_1_maxpressure", # exp3_1_undisturbed_100
         # prefix = "error:to_be_replaced", # exp3_1_undisturbed_100
         # prefix = "exp4_0_undisturbed_synth_100",
+        # prefix = "exp_14072025_disturbed_seed489_eps50_nn128",
+        prefix = "exp_new_undisturbed_seed907_eps30_nn128",
         seed = 0,
         debug = True,
         interface = "libsumo",
@@ -162,12 +164,13 @@ if __name__ == '__main__':
     )
     args.__dict__.update(new_args.__dict__)
     test = Runner(args)
-    # train
+    start_time = time.time()
+    # single test run
     test.run(
-        failure_chances=[0.0], # 0.1
+        failure_chances=[0.], # 0.1
         tprs=[1.0], # 0.8
-        fprs=[0.0], # 0.3
-        num_repetitions=3,
+        fprs=[0.65], # 0.3
+        num_repetitions=1,
     )
     # tests 5-6 (4*4*4*8=64*8=512 runs)
     # test.run(
@@ -176,14 +179,13 @@ if __name__ == '__main__':
     #     fprs=[0.65, 0.3, 0.15, 0.0],
     #     num_repetitions=16,
     # )
-    start_time = time.time()
-    test.run( # for quick testing
-        failure_chances=[0.15, 0.1, 0.05, 0.0],
-        tprs=[0.6, 0.8, 0.95, 1.0],
-        fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=330,
-        min_id=70,
-    )
+    # test.run( # for quick testing
+    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.15, 0.0],
+    #     num_repetitions=330,
+    #     min_id=70,
+    # )
     end_time = time.time()
     print(f"Total time taken: {end_time - start_time}")
     # play short beep sound when done
