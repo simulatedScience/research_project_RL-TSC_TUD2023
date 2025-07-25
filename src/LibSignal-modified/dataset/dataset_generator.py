@@ -269,7 +269,7 @@ def same_distribution_vehicle_fab_xml(routes_data: list[dict[str, str]]) -> Call
         return {
             "depart": str(depart_time),
             # "arrival": str(depart_time + 30), # Assuming a fixed travel duration of 30 seconds
-            "id": str(random.randint(1, 1e8)),
+            "id": str(random.randint(1, 10**8)),
             "type": type,
             "route": selected_route_str,
         }
@@ -346,7 +346,6 @@ def sine_schedule_fab(
 
 
 if __name__ == "__main__":
-    import tkinter as tk
     from tkinter import filedialog
     # file picker
     # print("Select the JSON flow file to generate variations from.")
@@ -355,7 +354,7 @@ if __name__ == "__main__":
     #     filetypes=[("JSON files", "*.json")],
     # )
     # create_variations_json(flow_file_path)
-    
+
     print("Select the XML routes file to generate variations from.")
     routes_file_path = filedialog.askopenfilename(
         title="Select XML routes file",
