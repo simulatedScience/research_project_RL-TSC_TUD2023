@@ -199,9 +199,9 @@ if __name__ == '__main__':
     # train with moderate sensor failure rate
     test.run()
     # play short beep sound when done
-    import winsound
-    frequency = 2500  # Set Frequency To 2500 Hertz
-    duration = 300
+    # import winsound
+    # frequency = 2500  # Set Frequency To 2500 Hertz
+    # duration = 300
 
-    winsound.Beep(frequency, duration)
+    # winsound.Beep(frequency, duration)
 
