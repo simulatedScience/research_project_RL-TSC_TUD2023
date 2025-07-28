@@ -139,7 +139,7 @@ if __name__ == '__main__':
     #             for run_id in range(num_repetitions):
     args = parse_args()
     new_args = argparse.Namespace(
-        thread_num = 1,
+        thread_num = 2,
         ngpu = 1,
         # prefix = "exp6_disturbed_seed100_eps30_nn32", # exp3_1_undisturbed_100
         # prefix = "exp6_1_maxpressure", # exp3_1_undisturbed_100
