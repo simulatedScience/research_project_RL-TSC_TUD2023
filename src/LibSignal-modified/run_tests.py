@@ -139,14 +139,14 @@ if __name__ == '__main__':
     #             for run_id in range(num_repetitions):
     args = parse_args()
     new_args = argparse.Namespace(
-        thread_num = 2,
-        ngpu = 0,
+        thread_num = 1,
+        ngpu = 1,
         # prefix = "exp6_disturbed_seed100_eps30_nn32", # exp3_1_undisturbed_100
         # prefix = "exp6_1_maxpressure", # exp3_1_undisturbed_100
         # prefix = "error:to_be_replaced", # exp3_1_undisturbed_100
         # prefix = "exp4_0_undisturbed_synth_100",
-        # prefix = "exp_14072025_disturbed_seed489_eps50_nn128",
         # prefix = "exp_new_undisturbed_seed907_eps30_nn128",
+        # prefix = "exp_25072025_disturbed_seed921_eps100_nn128",
         seed = 0,
         debug = True,
         interface = "libsumo",
@@ -179,11 +179,12 @@ if __name__ == '__main__':
     #     fprs=[0.65, 0.3, 0.15, 0.0],
     #     num_repetitions=16,
     # )
+    np.random.seed(8184) # common random seed for all runs
     test.run( # for quick testing
         failure_chances=[0.15, 0.1, 0.05, 0.0],
         tprs=[0.6, 0.8, 0.95, 1.0],
         fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=360,
+        num_repetitions=400,
         min_id=0,
     )
     end_time = time.time()
