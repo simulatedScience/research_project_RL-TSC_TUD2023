@@ -153,7 +153,8 @@ if __name__ == '__main__':
         delay_type = "apx",
 
         task = "tsc",
-        agent = "presslight", # frap, presslight, colight, fixedtime, maxpressure
+        # agent = "presslight", # frap, presslight, colight, fixedtime, maxpressure
+        agent = "fixedtime", # frap, presslight, colight, fixedtime, maxpressure
         world = "sumo",
         network = "sumo1x3", # sumo1x5_atlanta, sumo1x1, sumo1x1_colight, sumo1x3
         dataset = "onfly",
@@ -179,16 +180,16 @@ if __name__ == '__main__':
     #     fprs=[0.65, 0.3, 0.15, 0.0],
     #     num_repetitions=16,
     # )
-    np.random.seed(8184) # common random seed for all runs
-    test.run( # for quick testing
-        failure_chances=[0.15, 0.1, 0.05, 0.0],
-        tprs=[0.6, 0.8, 0.95, 1.0],
-        fprs=[0.65, 0.3, 0.15, 0.0],
-        num_repetitions=400,
-        min_id=0,
-    )
-    end_time = time.time()
-    print(f"Total time taken: {end_time - start_time}")
+    # np.random.seed(8184) # common random seed for all runs
+    # test.run( # for quick testing
+    #     failure_chances=[0.15, 0.1, 0.05, 0.0],
+    #     tprs=[0.6, 0.8, 0.95, 1.0],
+    #     fprs=[0.65, 0.3, 0.15, 0.0],
+    #     num_repetitions=400,
+    #     min_id=0,
+    # )
+    # end_time = time.time()
+    # print(f"Total time taken: {end_time - start_time}")
     # play short beep sound when done
     # import winsound
     # frequency = 2500  # Set Frequency To 2500 Hertz
@@ -202,9 +203,9 @@ if __name__ == '__main__':
     #     fprs=[0.65, 0.3, 0.2, 0.15, 0.1, 0.0],
     #     num_repetitions=15,
     # )
-    # test.run(
-    #     failure_chances=[0.0],
-    #     tprs=[0.0, 1.0],
-    #     fprs=[1.0, 0.0],
-    #     num_repetitions=1,
-    # )
+    test.run(
+        failure_chances=[0.0],
+        tprs=[0.0, 1.0],
+        fprs=[1.0, 0.0],
+        num_repetitions=1,
+    )

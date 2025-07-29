@@ -368,7 +368,7 @@ def main():
         files=filepaths,
         x_params=["failure chance", "true positive rate", "false positive rate"],
         y_params=["throughput", "travel_time"],
-        y_lims=[(1400, 2900), (60, 300)],
+        y_lims=[(900, 2900), (60, 410)],
         output_path=os.path.join("data", "output_data", "tsc", "structured_plots")
     )
 

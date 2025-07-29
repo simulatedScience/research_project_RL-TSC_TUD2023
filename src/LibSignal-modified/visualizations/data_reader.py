@@ -39,14 +39,24 @@ NETWORK_CONVERTER = {
 def get_fixedtime_data():
     """
     Return data for fixedtime agent on cologne3 network. WARNING: this data is hardcoded.
-    It was manually copied over from 2023_10_29-09_52_28_BRF.log
+    Original data was manually copied over from 2023_10_29-09_52_28_BRF.log
+    full path: `data\output_data\tsc\sumo_fixedtime\sumo1x3\exp_2_fixedtime\logger\2023_10_29-09_52_28_BRF.log`
+    Data for modified flow file was copied from `2025_07_29-18_13_11_BRF.log`
+    full path: `data\output_data\tsc\sumo_fixedtime\sumo1x3\test\logger\2025_07_29-18_13_11_BRF.log`
     """
-    fixedtime_data = {
-        "travel_time": 122.7122,
-        "mean_rewards": -79.6240,
-        "queue": 10.3694,
-        "delay": 3.2262,
-        "throughput": 2797,
+    # fixedtime_data = { # original, unmodified data
+    #     "travel_time": 122.7122,
+    #     "mean_rewards": -79.6240,
+    #     "queue": 10.3694,
+    #     "delay": 3.2262,
+    #     "throughput": 2797,
+    # }
+    fixedtime_data = { # corrected data without vehicles spawning/ despawning inside the network, only on the boundary
+        "travel_time": 134.4536,
+        "mean_rewards": -84.5985,
+        "queue": 11.1093,
+        "delay": 3.3953,
+        "throughput": 2793,
     }
     return fixedtime_data
 
