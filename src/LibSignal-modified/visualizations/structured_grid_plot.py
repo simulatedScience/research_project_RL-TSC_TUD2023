@@ -362,13 +362,14 @@ def main():
     basepath = os.path.join("data", "output_data", "tsc") 
     list_filepaths = choose_experiments()
     filepaths: dict[str, str] = {get_exp_label(filepath): filepath for filepath in list_filepaths}
-    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log")
+    # filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log") # old maxpressure test (original dataset)
+    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp_29072025_maxpressure/logger/2025_07_29-18_23_17_BRF.log")
     
     plot_data_for_all_agents(
         files=filepaths,
         x_params=["failure chance", "true positive rate", "false positive rate"],
         y_params=["throughput", "travel_time"],
-        y_lims=[(900, 2900), (60, 410)],
+        y_lims=[(900, 2900), (60, 450)],
         output_path=os.path.join("data", "output_data", "tsc", "structured_plots")
     )
 

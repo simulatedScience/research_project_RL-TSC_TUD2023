@@ -645,16 +645,17 @@ def main():
     basepath = os.path.join("data", "output_data", "tsc") # if necessary, add `os.path.dirname("."), ` to the front of paths
     list_filepaths = choose_experiments()
     filepaths: dict[str, str] = {get_exp_label(filepath): filepath for filepath in list_filepaths}
-    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log")
+    # filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp6_1_maxpressure/logger/2024_04_27-12_55_31_BRF.log") # old maxpressure test (original dataset)
+    filepaths["MaxPressure"] = os.path.join(basepath, "sumo_maxpressure/sumo1x3/exp_29072025_maxpressure/logger/2025_07_29-18_23_17_BRF.log")
     
     
     plot_comparison_figures(
         files=filepaths,
         x_params=["failure chance", "true positive rate", "false positive rate"],
         y_params=["throughput", "travel_time"],
-        y_lims=[(1400, 2900), (60, 300)],
+        y_lims=[(1400, 2900), (60, 350)],
         # y_lims=[(1800, 2900), (60, 280)],
-        output_path=os.path.join("data", "output_data", "tsc", "stats2")
+        output_path=os.path.join("data", "output_data", "tsc", "structured_plots")
     )
 
 if __name__ == '__main__':
