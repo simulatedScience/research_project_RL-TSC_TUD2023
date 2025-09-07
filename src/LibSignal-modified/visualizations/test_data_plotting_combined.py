@@ -543,7 +543,7 @@ def plot_comparison_figures(
             if output_path:
                 os.makedirs(output_path, exist_ok=True)
                 # Simplified filename for the 3-plot comparison
-                filename = os.path.join(output_path, f'{ABBREVIATIONS.get(x_param_text, x_param_text)}_{ABBREVIATIONS.get(y_param_text, y_param_text)}_averaged.svg')
+                filename = os.path.join(output_path, f'{ABBREVIATIONS.get(x_param_text, x_param_text)}_{ABBREVIATIONS.get(y_param_text, y_param_text)}_averaged.pdf')
                 fig.savefig(filename)
                 print(f"Saved comparison plot to {filename}")
 
